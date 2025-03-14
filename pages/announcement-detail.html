@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告詳情 - 607班級網站</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .announcement-detail {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin: 30px 0;
+        }
+        
+        .announcement-header {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .announcement-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .announcement-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+        
+        .announcement-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .author-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .announcement-content {
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        .announcement-content p {
+            margin-bottom: 15px;
+        }
+        
+        .announcement-attachments {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .attachment-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            background-color: #f5f5f5;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .attachment-item:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .attachment-icon {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .attachment-name {
+            font-size: 0.9rem;
+        }
+        
+        .announcement-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .back-btn i {
+            margin-right: 5px;
+        }
+        
+        .back-btn:hover {
+            color: var(--secondary-color);
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>607班級網站</h1>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="../index.html">首頁</a></li>
+                    <li><a href="announcements.html" class="active">最新公告</a></li>
+                    <li><a href="homework.html">作業區</a></li>
+                    <li><a href="photo-album.html">相簿</a></li>
+                    <li><a href="message-board.html">留言板</a></li>
+                    <li><a href="calendar.html">行事曆</a></li>
+                    <li id="teacher-nav" style="display: none;"><a href="students-list.html">學生名單</a></li>
+                    <li id="user-status"><a href="login.html">登入/註冊</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </header>
+
+        <main>
+            <section class="page-header">
+                <h2>公告詳情</h2>
+                <p>查看完整公告內容</p>
+            </section>
+
+            <section class="announcement-detail" id="announcement-container">
+                <!-- 公告詳情將由JavaScript動態生成 -->
+                <div class="skeleton-loader">
+                    <div class="skeleton-line" style="width: 70%; height: 30px;"></div>
+                    <div class="skeleton-line" style="width: 40%; height: 20px; margin-top: 10px;"></div>
+                    <div class="skeleton-line" style="width: 100%; height: 15px; margin-top: 30px;"></div>
+                    <div class="skeleton-line" style="width: 100%; height: 15px; margin-top: 10px;"></div>
+                    <div class="skeleton-line" style="width: 100%; height: 15px; margin-top: 10px;"></div>
+                    <div class="skeleton-line" style="width: 80%; height: 15px; margin-top: 10px;"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>607班級網站</h3>
+                    <p>我們的班級網站致力於提供最佳的線上學習體驗。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速連結</h3>
+                    <ul>
+                        <li><a href="../index.html">首頁</a></li>
+                        <li><a href="announcements.html">最新公告</a></li>
+                        <li><a href="homework.html">作業區</a></li>
+                        <li><a href="photo-album.html">相簿</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>聯絡資訊</h3>
+                    <p><i class="fas fa-envelope"></i> 607class@example.com</p>
+                    <p><i class="fas fa-phone"></i> (02) 1234-5678</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 607班級網站. 版權所有.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 編輯公告模態框 -->
+    <div id="edit-announcement-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>編輯公告</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="edit-title">標題</label>
+                    <input type="text" id="edit-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-content">內容</label>
+                    <textarea id="edit-content" rows="6" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-important">重要公告</label>
+                    <input type="checkbox" id="edit-important">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-cancel">取消</button>
+                <button class="btn modal-confirm" id="update-announcement-btn">更新</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 確認刪除模態框 -->
+    <div id="confirm-delete-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>確認刪除</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>確定要刪除此公告嗎？此操作無法撤銷。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-cancel">取消</button>
+                <button class="btn btn-danger modal-confirm" id="confirm-delete-btn">刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    
+    <!-- 自定義JavaScript -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化導航欄
+            initNavigation();
+            
+            // 獲取公告ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const announcementId = urlParams.get('id');
+            
+            if (!announcementId) {
+                // 如果沒有公告ID，顯示錯誤訊息
+                document.getElementById('announcement-container').innerHTML = `
+                    <div class="error-message">
+                        <h3>錯誤</h3>
+                        <p>找不到指定的公告</p>
+                        <a href="announcements.html" class="back-btn"><i class="fas fa-arrow-left"></i> 返回公告列表</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 載入公告詳情
+            loadAnnouncementDetail(announcementId);
+            
+            // 關閉模態框
+            document.querySelectorAll('.modal-close, .modal-cancel').forEach(element => {
+                element.addEventListener('click', () => {
+                    document.querySelectorAll('.modal-overlay').forEach(modal => {
+                        modal.classList.remove('active');
+                    });
+                });
+            });
+            
+            // 更新公告按鈕事件
+            document.getElementById('update-announcement-btn').addEventListener('click', () => {
+                updateAnnouncement(announcementId);
+            });
+            
+            // 確認刪除按鈕事件
+            document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+                deleteAnnouncement(announcementId);
+            });
+            
+            // 載入公告詳情
+            function loadAnnouncementDetail(id) {
+                db.collection('announcements').doc(id).get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            const announcement = doc.data();
+                            announcement.id = doc.id;
+                            
+                            // 檢查當前用戶是否為老師
+                            checkUserRole().then(isTeacher => {
+                                renderAnnouncementDetail(announcement, isTeacher);
+                            });
+                        } else {
+                            // 公告不存在
+                            document.getElementById('announcement-container').innerHTML = `
+                                <div class="error-message">
+                                    <h3>錯誤</h3>
+                                    <p>找不到指定的公告</p>
+                                    <a href="announcements.html" class="back-btn"><i class="fas fa-arrow-left"></i> 返回公告列表</a>
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('獲取公告詳情錯誤:', error);
+                        document.getElementById('announcement-container').innerHTML = `
+                            <div class="error-message">
+                                <h3>錯誤</h3>
+                                <p>載入公告詳情時發生錯誤</p>
+                                <a href="announcements.html" class="back-btn"><i class="fas fa-arrow-left"></i> 返回公告列表</a>
+                            </div>
+                        `;
+                    });
+            }
+            
+            // 渲染公告詳情
+            function renderAnnouncementDetail(announcement, isTeacher) {
+                const container = document.getElementById('announcement-container');
+                
+                // 格式化日期
+                const createdDate = announcement.createdAt.toDate();
+                const formattedDate = formatDate(createdDate);
+                
+                // 獲取作者頭像字母
+                const authorInitial = announcement.authorName.charAt(0).toUpperCase();
+                
+                // 處理內容的換行
+                const formattedContent = announcement.content.replace(/\n/g, '<br>');
+                
+                // 建立HTML
+                let html = `
+                    <div class="announcement-header">
+                        <h1 class="announcement-title">
+                            ${announcement.important ? '<i class="fas fa-star" style="color: #FFD700;"></i> ' : ''}
+                            ${announcement.title}
+                        </h1>
+                        <div class="announcement-meta">
+                            <div class="announcement-author">
+                                <div class="author-avatar">${authorInitial}</div>
+                                <span>${announcement.authorName}</span>
+                            </div>
+                            <div class="announcement-date">
+                                <i class="far fa-calendar-alt"></i> ${formattedDate}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="announcement-content">
+                        ${formattedContent}
+                    </div>
+                `;
+                
+                // 如果有附件，顯示附件列表
+                if (announcement.attachments && announcement.attachments.length > 0) {
+                    html += `
+                        <div class="announcement-attachments">
+                            <h3>附件</h3>
+                            <div class="attachment-list">
+                    `;
+                    
+                    announcement.attachments.forEach(attachment => {
+                        // 根據檔案類型選擇圖標
+                        let iconClass = 'fa-file';
+                        const fileExt = attachment.name.split('.').pop().toLowerCase();
+                        
+                        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+                            iconClass = 'fa-file-image';
+                        } else if (['pdf'].includes(fileExt)) {
+                            iconClass = 'fa-file-pdf';
+                        } else if (['doc', 'docx'].includes(fileExt)) {
+                            iconClass = 'fa-file-word';
+                        } else if (['xls', 'xlsx'].includes(fileExt)) {
+                            iconClass = 'fa-file-excel';
+                        } else if (['ppt', 'pptx'].includes(fileExt)) {
+                            iconClass = 'fa-file-powerpoint';
+                        } else if (['zip', 'rar', '7z'].includes(fileExt)) {
+                            iconClass = 'fa-file-archive';
+                        }
+                        
+                        html += `
+                            <a href="${attachment.url}" target="_blank" class="attachment-item">
+                                <div class="attachment-icon">
+                                    <i class="far ${iconClass}"></i>
+                                </div>
+                                <div class="attachment-name">${attachment.name}</div>
+                            </a>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // 底部操作按鈕
+                html += `
+                    <div class="announcement-actions">
+                        <a href="announcements.html" class="back-btn">
+                            <i class="fas fa-arrow-left"></i> 返回公告列表
+                        </a>
+                `;
+                
+                // 如果是老師，顯示編輯和刪除按鈕
+                if (isTeacher) {
+                    html += `
+                        <div class="admin-actions">
+                            <button class="btn btn-secondary" id="edit-announcement-btn">
+                                <i class="fas fa-edit"></i> 編輯
+                            </button>
+                            <button class="btn btn-danger" id="delete-announcement-btn">
+                                <i class="fas fa-trash-alt"></i> 刪除
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                html += `
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+                
+                // 如果是老師，綁定編輯和刪除按鈕事件
+                if (isTeacher) {
+                    // 編輯按鈕事件
+                    document.getElementById('edit-announcement-btn').addEventListener('click', () => {
+                        // 填充表單
+                        document.getElementById('edit-title').value = announcement.title;
+                        document.getElementById('edit-content').value = announcement.content;
+                        document.getElementById('edit-important').checked = announcement.important || false;
+                        
+                        // 顯示模態框
+                        document.getElementById('edit-announcement-modal').classList.add('active');
+                    });
+                    
+                    // 刪除按鈕事件
+                    document.getElementById('delete-announcement-btn').addEventListener('click', () => {
+                        document.getElementById('confirm-delete-modal').classList.add('active');
+                    });
+                }
+                
+                // 更新頁面標題
+                document.title = `${announcement.title} - 公告詳情 - 607班級網站`;
+            }
+            
+            // 更新公告
+            function updateAnnouncement(id) {
+                const title = document.getElementById('edit-title').value.trim();
+                const content = document.getElementById('edit-content').value.trim();
+                const important = document.getElementById('edit-important').checked;
+                
+                if (!title || !content) {
+                    showAlert('請填寫所有必填欄位', 'danger');
+                    return;
+                }
+                
+                const updateBtn = document.getElementById('update-announcement-btn');
+                updateBtn.disabled = true;
+                updateBtn.textContent = '更新中...';
+                
+                // 更新公告
+                db.collection('announcements').doc(id).update({
+                    title: title,
+                    content: content,
+                    important: important,
+                    updatedAt: timestamp()
+                })
+                .then(() => {
+                    document.getElementById('edit-announcement-modal').classList.remove('active');
+                    showAlert('公告已成功更新');
+                    
+                    // 重新載入公告詳情
+                    loadAnnouncementDetail(id);
+                })
+                .catch(error => {
+                    console.error('更新公告錯誤:', error);
+                    showAlert('更新公告時發生錯誤', 'danger');
+                })
+                .finally(() => {
+                    updateBtn.disabled = false;
+                    updateBtn.textContent = '更新';
+                });
+            }
+            
+            // 刪除公告
+            function deleteAnnouncement(id) {
+                const deleteBtn = document.getElementById('confirm-delete-btn');
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = '刪除中...';
+                
+                // 刪除公告
+                db.collection('announcements').doc(id).delete()
+                    .then(() => {
+                        document.getElementById('confirm-delete-modal').classList.remove('active');
+                        showAlert('公告已成功刪除');
+                        
+                        // 延遲跳轉，讓用戶看到成功訊息
+                        setTimeout(() => {
+                            window.location.href = 'announcements.html';
+                        }, 1500);
+                    })
+                    .catch(error => {
+                        console.error('刪除公告錯誤:', error);
+                        showAlert('刪除公告時發生錯誤', 'danger');
+                        deleteBtn.disabled = false;
+                        deleteBtn.textContent = '刪除';
+                    });
+            }
+            
+            // 檢查用戶角色
+            function checkUserRole() {
+                return new Promise((resolve) => {
+                    auth.onAuthStateChanged(user => {
+                        if (user) {
+                            db.collection('users').doc(user.uid).get()
+                                .then(doc => {
+                                    if (doc.exists) {
+                                        const userData = doc.data();
+                                        resolve(userData.role === 'teacher');
+                                    } else {
+                                        resolve(false);
+                                    }
+                                })
+                                .catch(() => {
+                                    resolve(false);
+                                });
+                        } else {
+                            resolve(false);
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

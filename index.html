@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>607班級網站</title>
+    <link rel="stylesheet" href="css/enhanced-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>607班級網站</h1>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="index.html" class="active">首頁</a></li>
+                    <li><a href="pages/announcements.html">最新公告</a></li>
+                    <li><a href="pages/homework.html">作業區</a></li>
+                    <li><a href="pages/photo-album.html">相簿</a></li>
+                    <li><a href="pages/message-board.html">留言板</a></li>
+                    <li><a href="pages/calendar.html">行事曆</a></li>
+                    <li id="user-status"><a href="pages/login.html">登入/註冊</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </header>
+
+        <main>
+            <section class="hero">
+                <div class="hero-content">
+                    <h2>歡迎來到607班級網站</h2>
+                    <p>這裡是我們班級的線上交流平台，提供最新公告、作業繳交、相簿分享等功能。</p>
+                </div>
+            </section>
+
+            <section class="countdown-section">
+                <h2>重要日期倒數</h2>
+                <div class="countdown-container">
+                    <div class="countdown" id="exam-countdown">
+                        <h3>期中考試</h3>
+                        <div class="countdown-time">
+                            <div><span id="exam-days">00</span><span>天</span></div>
+                            <div><span id="exam-hours">00</span><span>時</span></div>
+                            <div><span id="exam-minutes">00</span><span>分</span></div>
+                            <div><span id="exam-seconds">00</span><span>秒</span></div>
+                        </div>
+                    </div>
+                    <div class="countdown" id="event-countdown">
+                        <h3>校慶活動</h3>
+                        <div class="countdown-time">
+                            <div><span id="event-days">00</span><span>天</span></div>
+                            <div><span id="event-hours">00</span><span>時</span></div>
+                            <div><span id="event-minutes">00</span><span>分</span></div>
+                            <div><span id="event-seconds">00</span><span>秒</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="latest-announcements">
+                <h2>最新公告</h2>
+                <div class="announcements-container" id="announcements-list">
+                    <!-- 公告內容將由JavaScript動態生成 -->
+                    <div class="announcement-card skeleton"></div>
+                    <div class="announcement-card skeleton"></div>
+                    <div class="announcement-card skeleton"></div>
+                </div>
+                <div class="view-more">
+                    <a href="pages/announcements.html">查看更多</a>
+                </div>
+            </section>
+
+            <section class="recent-messages">
+                <h2>最新留言</h2>
+                <div class="messages-container" id="messages-list">
+                    <!-- 留言內容將由JavaScript動態生成 -->
+                    <div class="message-card skeleton"></div>
+                    <div class="message-card skeleton"></div>
+                </div>
+                <div class="view-more">
+                    <a href="pages/message-board.html">查看更多</a>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>607班級網站</h3>
+                    <p>我們的班級網站致力於提供最佳的線上學習體驗。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速連結</h3>
+                    <ul>
+                        <li><a href="index.html">首頁</a></li>
+                        <li><a href="pages/announcements.html">最新公告</a></li>
+                        <li><a href="pages/homework.html">作業區</a></li>
+                        <li><a href="pages/photo-album.html">相簿</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>聯絡資訊</h3>
+                    <p><i class="fas fa-envelope"></i> 607class@example.com</p>
+                    <p><i class="fas fa-phone"></i> (02) 1234-5678</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 607班級網站. 版權所有.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    
+    <!-- 自定義JavaScript -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

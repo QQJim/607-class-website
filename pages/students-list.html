@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生名單 - 607班級網站</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .students-container {
+            margin: 30px 0;
+        }
+        
+        .students-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .students-search {
+            display: flex;
+            align-items: center;
+        }
+        
+        .students-search input {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            margin-right: 10px;
+            width: 250px;
+        }
+        
+        .students-table {
+            width: 100%;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .students-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .students-table th,
+        .students-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .students-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .students-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .students-table tr:hover {
+            background-color: rgba(var(--primary-color-rgb), 0.05);
+        }
+        
+        .student-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .student-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--primary-color);
+            transition: color 0.3s;
+        }
+        
+        .student-actions button:hover {
+            color: var(--secondary-color);
+        }
+        
+        .student-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .student-status.active {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .student-status.inactive {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .student-details-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .student-details-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .student-details-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .student-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .student-details-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .student-details-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .student-details-body {
+            margin-bottom: 20px;
+        }
+        
+        .student-details-item {
+            margin-bottom: 15px;
+        }
+        
+        .student-details-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+        
+        .student-details-value {
+            color: var(--dark-text);
+        }
+        
+        .student-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+        
+        .student-homework-list {
+            margin-top: 20px;
+        }
+        
+        .student-homework-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .student-homework-item:last-child {
+            border-bottom: none;
+        }
+        
+        .homework-title {
+            font-weight: bold;
+        }
+        
+        .homework-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+        }
+        
+        .homework-status.completed {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .homework-status.pending {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+        
+        .homework-status.late {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .homework-status.not-submitted {
+            background-color: #f5f5f5;
+            color: #757575;
+        }
+        
+        .homework-grade {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .students-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .students-search {
+                margin-bottom: 15px;
+                width: 100%;
+            }
+            
+            .students-search input {
+                width: 100%;
+            }
+            
+            .students-table {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>607班級網站</h1>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="../index.html">首頁</a></li>
+                    <li><a href="announcements.html">最新公告</a></li>
+                    <li><a href="homework.html">作業區</a></li>
+                    <li><a href="photo-album.html">相簿</a></li>
+                    <li><a href="message-board.html">留言板</a></li>
+                    <li><a href="calendar.html">行事曆</a></li>
+                    <li><a href="students-list.html" class="active">學生名單</a></li>
+                    <li id="user-status"><a href="login.html">登入/註冊</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </header>
+
+        <main>
+            <section class="page-header">
+                <h2>學生名單</h2>
+                <p>管理班級學生</p>
+            </section>
+
+            <section class="students-container">
+                <div class="students-header">
+                    <div class="students-search">
+                        <input type="text" id="student-search" placeholder="搜尋學生...">
+                        <button class="btn" id="search-btn">搜尋</button>
+                    </div>
+                </div>
+
+                <div class="students-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>學號</th>
+                                <th>姓名</th>
+                                <th>使用者名稱</th>
+                                <th>狀態</th>
+                                <th>作業完成率</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-list">
+                            <!-- 學生資料將由JavaScript動態生成 -->
+                            <tr class="skeleton">
+                                <td colspan="6"></td>
+                            </tr>
+                            <tr class="skeleton">
+                                <td colspan="6"></td>
+                            </tr>
+                            <tr class="skeleton">
+                                <td colspan="6"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>607班級網站</h3>
+                    <p>我們的班級網站致力於提供最佳的線上學習體驗。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速連結</h3>
+                    <ul>
+                        <li><a href="../index.html">首頁</a></li>
+                        <li><a href="announcements.html">最新公告</a></li>
+                        <li><a href="homework.html">作業區</a></li>
+                        <li><a href="photo-album.html">相簿</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>聯絡資訊</h3>
+                    <p><i class="fas fa-envelope"></i> 607class@example.com</p>
+                    <p><i class="fas fa-phone"></i> (02) 1234-5678</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 607班級網站. 版權所有.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 學生詳情模態框 -->
+    <div id="student-details-modal" class="student-details-modal">
+        <div class="student-details-content">
+            <div class="student-details-header">
+                <div class="student-details-title" id="student-name"></div>
+                <button class="student-details-close">&times;</button>
+            </div>
+            <div class="student-details-body">
+                <div class="student-details-item">
+                    <div class="student-details-label">學號</div>
+                    <div class="student-details-value" id="student-id"></div>
+                </div>
+                <div class="student-details-item">
+                    <div class="student-details-label">使用者名稱</div>
+                    <div class="student-details-value" id="student-username"></div>
+                </div>
+                <div class="student-details-item">
+                    <div class="student-details-label">註冊日期</div>
+                    <div class="student-details-value" id="student-register-date"></div>
+                </div>
+                <div class="student-details-item">
+                    <div class="student-details-label">最後登入</div>
+                    <div class="student-details-value" id="student-last-login"></div>
+                </div>
+                
+                <div class="student-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="homework-completion-rate">0%</div>
+                        <div class="stat-label">作業完成率</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="homework-avg-grade">0</div>
+                        <div class="stat-label">平均成績</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="homework-submitted">0</div>
+                        <div class="stat-label">已繳交作業</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="homework-pending">0</div>
+                        <div class="stat-label">待繳交作業</div>
+                    </div>
+                </div>
+                
+                <div class="student-homework-list">
+                    <h3>作業繳交狀況</h3>
+                    <div id="student-homework-items">
+                        <!-- 作業資料將由JavaScript動態生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- 自定義JavaScript -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化導航欄
+            initNavigation();
+            
+            // 檢查是否為老師
+            checkTeacherAccess();
+            
+            // 載入學生列表
+            loadStudents();
+            
+            // 搜尋按鈕事件
+            document.getElementById('search-btn').addEventListener('click', () => {
+                loadStudents();
+            });
+            
+            // 搜尋框按 Enter 事件
+            document.getElementById('student-search').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    loadStudents();
+                }
+            });
+            
+            // 學生詳情模態框
+            const studentDetailsModal = document.getElementById('student-details-modal');
+            
+            // 關閉學生詳情模態框
+            document.querySelector('.student-details-close').addEventListener('click', () => {
+                studentDetailsModal.classList.remove('active');
+            });
+            
+            // 檢查是否為老師
+            function checkTeacherAccess() {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        // 獲取用戶資料
+                        db.collection('users').doc(user.uid).get()
+                            .then(doc => {
+                                if (doc.exists) {
+                                    const userData = doc.data();
+                                    
+                                    // 如果不是老師，重定向到首頁
+                                    if (userData.role !== 'teacher') {
+                                        showAlert('只有老師可以訪問此頁面', 'danger');
+                                        setTimeout(() => {
+                                            window.location.href = '../index.html';
+                                        }, 2000);
+                                    }
+                                } else {
+                                    // 用戶資料不存在，重定向到首頁
+                                    showAlert('用戶資料不存在', 'danger');
+                                    setTimeout(() => {
+                                        window.location.href = '../index.html';
+                                    }, 2000);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('獲取用戶資料錯誤:', error);
+                                showAlert('獲取用戶資料時發生錯誤', 'danger');
+                            });
+                    } else {
+                        // 未登入，重定向到登入頁面
+                        showAlert('請先登入', 'danger');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 2000);
+                    }
+                });
+            }
+            
+            // 載入學生列表
+            function loadStudents() {
+                const studentsList = document.getElementById('students-list');
+                const searchQuery = document.getElementById('student-search').value.trim().toLowerCase();
+                
+                // 顯示載入中
+                studentsList.innerHTML = `
+                    <tr class="skeleton">
+                        <td colspan="6"></td>
+                    </tr>
+                    <tr class="skeleton">
+                        <td colspan="6"></td>
+                    </tr>
+                    <tr class="skeleton">
+                        <td colspan="6"></td>
+                    </tr>
+                `;
+                
+                // 從 Firestore 獲取學生資料
+                db.collection('users')
+                    .where('role', '==', 'student')
+                    .get()
+                    .then(snapshot => {
+                        studentsList.innerHTML = '';
+                        
+                        if (snapshot.empty) {
+                            studentsList.innerHTML = '<tr><td colspan="6" class="no-data">目前沒有學生</td></tr>';
+                            return;
+                        }
+                        
+                        // 過濾學生資料
+                        const students = [];
+                        snapshot.forEach(doc => {
+                            const student = doc.data();
+                            student.id = doc.id;
+                            
+                            // 如果有搜尋查詢，過濾學生資料
+                            if (searchQuery) {
+                                const studentName = student.name ? student.name.toLowerCase() : '';
+                                const studentUsername = student.username ? student.username.toLowerCase() : '';
+                                const studentNumber = student.studentNumber ? student.studentNumber.toLowerCase() : '';
+                                
+                                if (studentName.includes(searchQuery) || 
+                                    studentUsername.includes(searchQuery) || 
+                                    studentNumber.includes(searchQuery)) {
+                                    students.push(student);
+                                }
+                            } else {
+                                students.push(student);
+                            }
+                        });
+                        
+                        if (students.length === 0) {
+                            studentsList.innerHTML = '<tr><td colspan="6" class="no-data">沒有符合搜尋條件的學生</td></tr>';
+                            return;
+                        }
+                        
+                        // 獲取所有作業
+                        db.collection('homework')
+                            .get()
+                            .then(homeworkSnapshot => {
+                                const homeworkList = [];
+                                homeworkSnapshot.forEach(doc => {
+                                    const homework = doc.data();
+                                    homework.id = doc.id;
+                                    homeworkList.push(homework);
+                                });
+                                
+                                // 獲取所有作業提交
+                                db.collection('homework_submissions')
+                                    .get()
+                                    .then(submissionSnapshot => {
+                                        const submissions = [];
+                                        submissionSnapshot.forEach(doc => {
+                                            const submission = doc.data();
+                                            submission.id = doc.id;
+                                            submissions.push(submission);
+                                        });
+                                        
+                                        // 計算每個學生的作業完成率
+                                        students.forEach(student => {
+                                            const studentSubmissions = submissions.filter(sub => sub.studentId === student.id);
+                                            const totalHomework = homeworkList.length;
+                                            const completedHomework = studentSubmissions.length;
+                                            
+                                            student.homeworkCompletionRate = totalHomework > 0 ? 
+                                                Math.round((completedHomework / totalHomework) * 100) : 0;
+                                            
+                                            student.submissions = studentSubmissions;
+                                        });
+                                        
+                                        // 顯示學生列表
+                                        students.forEach(student => {
+                                            const row = document.createElement('tr');
+                                            
+                                            row.innerHTML = `
+                                                <td>${student.studentNumber || '未設置'}</td>
+                                                <td>${student.name || '未設置'}</td>
+                                                <td>${student.username}</td>
+                                                <td>
+                                                    <span class="student-status ${student.active !== false ? 'active' : 'inactive'}">
+                                                        ${student.active !== false ? '活躍' : '非活躍'}
+                                                    </span>
+                                                </td>
+                                                <td>${student.homeworkCompletionRate}%</td>
+                                                <td class="student-actions">
+                                                    <button class="view-student-btn" data-id="${student.id}">
+                                                        <i class="fas fa-eye"></i> 查看
+                                                    </button>
+                                                </td>
+                                            `;
+                                            
+                                            studentsList.appendChild(row);
+                                            
+                                            // 查看學生按鈕事件
+                                            row.querySelector('.view-student-btn').addEventListener('click', function() {
+                                                showStudentDetails(student, homeworkList, submissions);
+                                            });
+                                        });
+                                    })
+                                    .catch(error => {
+                                        console.error('獲取作業提交錯誤:', error);
+                                        studentsList.innerHTML = '<tr><td colspan="6" class="error">載入作業提交時發生錯誤</td></tr>';
+                                    });
+                            })
+                            .catch(error => {
+                                console.error('獲取作業錯誤:', error);
+                                studentsList.innerHTML = '<tr><td colspan="6" class="error">載入作業時發生錯誤</td></tr>';
+                            });
+                    })
+                    .catch(error => {
+                        console.error('獲取學生資料錯誤:', error);
+                        studentsList.innerHTML = '<tr><td colspan="6" class="error">載入學生資料時發生錯誤</td></tr>';
+                    });
+            }
+            
+            // 顯示學生詳情
+            function showStudentDetails(student, homeworkList, allSubmissions) {
+                const studentName = document.getElementById('student-name');
+                const studentId = document.getElementById('student-id');
+                const studentUsername = document.getElementById('student-username');
+                const studentRegisterDate = document.getElementById('student-register-date');
+                const studentLastLogin = document.getElementById('student-last-login');
+                const homeworkCompletionRate = document.getElementById('homework-completion-rate');
+                const homeworkAvgGrade = document.getElementById('homework-avg-grade');
+                const homeworkSubmitted = document.getElementById('homework-submitted');
+                const homeworkPending = document.getElementById('homework-pending');
+                const studentHomeworkItems = document.getElementById('student-homework-items');
+                
+                // 設置學生基本資料
+                studentName.textContent = student.name || '未設置姓名';
+                studentId.textContent = student.studentNumber || '未設置學號';
+                studentUsername.textContent = student.username;
+                studentRegisterDate.textContent = student.createdAt ? formatDate(student.createdAt.toDate()) : '未知';
+                studentLastLogin.textContent = student.lastLogin ? formatDate(student.lastLogin.toDate()) : '未知';
+                
+                // 過濾該學生的作業提交
+                const studentSubmissions = allSubmissions.filter(sub => sub.studentId === student.id);
+                
+                // 計算作業統計資料
+                const totalHomework = homeworkList.length;
+                const completedHomework = studentSubmissions.length;
+                const completionRate = totalHomework > 0 ? Math.round((completedHomework / totalHomework) * 100) : 0;
+                
+                // 計算平均成績
+                let totalGrade = 0;
+                let gradedCount = 0;
+                
+                studentSubmissions.forEach(sub => {
+                    if (sub.grade !== undefined && sub.grade !== null) {
+                        totalGrade += sub.grade;
+                        gradedCount++;
+                    }
+                });
+                
+                const avgGrade = gradedCount > 0 ? Math.round(totalGrade / gradedCount) : 0;
+                
+                // 設置統計資料
+                homeworkCompletionRate.textContent = `${completionRate}%`;
+                homeworkAvgGrade.textContent = avgGrade;
+                homeworkSubmitted.textContent = completedHomework;
+                homeworkPending.textContent = totalHomework - completedHomework;
+                
+                // 顯示作業繳交狀況
+                studentHomeworkItems.innerHTML = '';
+                
+                if (homeworkList.length === 0) {
+                    studentHomeworkItems.innerHTML = '<p class="no-data">目前沒有作業</p>';
+                } else {
+                    homeworkList.forEach(homework => {
+                        // 查找該作業的提交
+                        const submission = studentSubmissions.find(sub => sub.homeworkId === homework.id);
+                        
+                        const homeworkItem = document.createElement('div');
+                        homeworkItem.className = 'student-homework-item';
+                        
+                        // 確定作業狀態
+                        let statusClass = 'not-submitted';
+                        let statusText = '未繳交';
+                        
+                        if (submission) {
+                            if (submission.grade !== undefined && submission.grade !== null) {
+                                statusClass = 'completed';
+                                statusText = '已評分';
+                            } else {
+                                statusClass = 'pending';
+                                statusText = '待評分';
+                            }
+                            
+                            // 檢查是否逾期
+                            if (submission.isLate) {
+                                statusClass = 'late';
+                                statusText = '逾期繳交';
+                            }
+                        }
+                        
+                        homeworkItem.innerHTML = `
+                            <div class="homework-info">
+                                <div class="homework-title">${homework.title}</div>
+                                <div class="homework-date">截止日期: ${formatDate(homework.dueDate.toDate())}</div>
+                            </div>
+                            <div class="homework-meta">
+                                <span class="homework-status ${statusClass}">${statusText}</span>
+                                ${submission && submission.grade !== undefined && submission.grade !== null ? 
+                                    `<span class="homework-grade">${submission.grade}分</span>` : ''}
+                            </div>
+                        `;
+                        
+                        studentHomeworkItems.appendChild(homeworkItem);
+                    });
+                }
+                
+                // 顯示模態框
+                document.getElementById('student-details-modal').classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>

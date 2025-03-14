@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行事曆 - 607班級網站</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .calendar-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+        }
+        
+        .calendar-nav button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--primary-color);
+            margin: 0 10px;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+        
+        .calendar-day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 5px;
+        }
+        
+        .calendar-day {
+            min-height: 100px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 10px;
+            position: relative;
+        }
+        
+        .calendar-day.other-month {
+            background-color: #f5f5f5;
+            opacity: 0.7;
+        }
+        
+        .calendar-day.today {
+            border: 2px solid var(--primary-color);
+            background-color: rgba(var(--primary-color-rgb), 0.05);
+        }
+        
+        .day-number {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .today .day-number {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+        }
+        
+        .event-list {
+            margin-top: 25px;
+            font-size: 0.8rem;
+        }
+        
+        .event-item {
+            margin-bottom: 5px;
+            padding: 3px 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .event-item.homework {
+            background-color: #ffecb3;
+        }
+        
+        .event-item.exam {
+            background-color: #ffcdd2;
+        }
+        
+        .event-item.activity {
+            background-color: #c8e6c9;
+        }
+        
+        .event-item.other {
+            background-color: #e1f5fe;
+        }
+        
+        .event-details {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .event-details.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .event-details-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .event-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .event-details-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .event-details-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .event-details-body {
+            margin-bottom: 20px;
+        }
+        
+        .event-details-footer {
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .event-details-footer button {
+            margin-left: 10px;
+        }
+        
+        .event-form {
+            margin-top: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: repeat(7, 1fr);
+                gap: 5px;
+            }
+            
+            .calendar-day {
+                min-height: 80px;
+                padding: 5px;
+            }
+            
+            .day-number {
+                width: 20px;
+                height: 20px;
+                font-size: 0.8rem;
+            }
+            
+            .event-list {
+                margin-top: 20px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>607班級網站</h1>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="../index.html">首頁</a></li>
+                    <li><a href="announcements.html">最新公告</a></li>
+                    <li><a href="homework.html">作業區</a></li>
+                    <li><a href="photo-album.html">相簿</a></li>
+                    <li><a href="message-board.html">留言板</a></li>
+                    <li><a href="calendar.html" class="active">行事曆</a></li>
+                    <li id="user-status"><a href="login.html">登入/註冊</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </header>
+
+        <main>
+            <section class="page-header">
+                <h2>班級行事曆</h2>
+                <p>掌握重要日期和活動</p>
+            </section>
+
+            <section class="calendar-section">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <div class="calendar-nav">
+                            <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                            <div class="calendar-title" id="calendar-title">2025年3月</div>
+                            <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <button id="add-event-btn" class="btn">新增事件</button>
+                    </div>
+                    
+                    <div class="calendar-grid" id="calendar-days-header">
+                        <div class="calendar-day-header">日</div>
+                        <div class="calendar-day-header">一</div>
+                        <div class="calendar-day-header">二</div>
+                        <div class="calendar-day-header">三</div>
+                        <div class="calendar-day-header">四</div>
+                        <div class="calendar-day-header">五</div>
+                        <div class="calendar-day-header">六</div>
+                    </div>
+                    
+                    <div class="calendar-grid" id="calendar-days">
+                        <!-- 日曆內容將由JavaScript動態生成 -->
+                    </div>
+                </div>
+                
+                <!-- 新增事件表單 -->
+                <div id="event-form" class="event-form" style="display: none;">
+                    <h3>新增事件</h3>
+                    <div id="event-error" class="alert alert-danger" style="display: none;"></div>
+                    
+                    <div class="form-group">
+                        <label for="event-title">標題</label>
+                        <input type="text" id="event-title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="event-description">描述</label>
+                        <textarea id="event-description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="event-date">日期</label>
+                        <input type="date" id="event-date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="event-type">類型</label>
+                        <select id="event-type">
+                            <option value="homework">作業</option>
+                            <option value="exam">考試</option>
+                            <option value="activity">活動</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="cancel-event-btn" class="btn btn-secondary">取消</button>
+                        <button type="button" id="save-event-btn" class="btn">儲存</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>607班級網站</h3>
+                    <p>我們的班級網站致力於提供最佳的線上學習體驗。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速連結</h3>
+                    <ul>
+                        <li><a href="../index.html">首頁</a></li>
+                        <li><a href="announcements.html">最新公告</a></li>
+                        <li><a href="homework.html">作業區</a></li>
+                        <li><a href="photo-album.html">相簿</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>聯絡資訊</h3>
+                    <p><i class="fas fa-envelope"></i> 607class@example.com</p>
+                    <p><i class="fas fa-phone"></i> (02) 1234-5678</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 607班級網站. 版權所有.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 事件詳情模態框 -->
+    <div id="event-details" class="event-details">
+        <div class="event-details-content">
+            <div class="event-details-header">
+                <div class="event-details-title" id="details-title"></div>
+                <button class="event-details-close">&times;</button>
+            </div>
+            <div class="event-details-body">
+                <p id="details-description"></p>
+                <p><strong>日期:</strong> <span id="details-date"></span></p>
+                <p><strong>類型:</strong> <span id="details-type"></span></p>
+                <p><strong>建立者:</strong> <span id="details-author"></span></p>
+            </div>
+            <div class="event-details-footer" id="details-actions">
+                <button class="btn btn-secondary" id="details-close-btn">關閉</button>
+                <button class="btn btn-danger" id="details-delete-btn" style="display: none;">刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- 自定義JavaScript -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化導航欄
+            initNavigation();
+            
+            // 全局變數
+            let currentDate = new Date();
+            let currentYear = currentDate.getFullYear();
+            let currentMonth = currentDate.getMonth();
+            let events = [];
+            
+            // 初始化日曆
+            renderCalendar(currentYear, currentMonth);
+            
+            // 上個月按鈕事件
+            document.getElementById('prev-month').addEventListener('click', () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderCalendar(currentYear, currentMonth);
+            });
+            
+            // 下個月按鈕事件
+            document.getElementById('next-month').addEventListener('click', () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderCalendar(currentYear, currentMonth);
+            });
+            
+            // 新增事件按鈕事件
+            const addEventBtn = document.getElementById('add-event-btn');
+            const eventForm = document.getElementById('event-form');
+            
+            addEventBtn.addEventListener('click', () => {
+                // 檢查用戶是否登入
+                if (!auth.currentUser) {
+                    showAlert('請先登入後再新增事件', 'danger');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                    return;
+                }
+                
+                // 清空表單
+                document.getElementById('event-title').value = '';
+                document.getElementById('event-description').value = '';
+                document.getElementById('event-date').value = formatDateForInput(new Date());
+                document.getElementById('event-type').value = 'other';
+                document.getElementById('event-error').style.display = 'none';
+                
+                // 顯示表單
+                eventForm.style.display = 'block';
+                
+                // 滾動到表單
+                eventForm.scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // 取消新增事件按鈕事件
+            document.getElementById('cancel-event-btn').addEventListener('click', () => {
+                eventForm.style.display = 'none';
+            });
+            
+            // 儲存事件按鈕事件
+            document.getElementById('save-event-btn').addEventListener('click', () => {
+                const title = document.getElementById('event-title').value.trim();
+                const description = document.getElementById('event-description').value.trim();
+                const dateStr = document.getElementById('event-date').value;
+                const type = document.getElementById('event-type').value;
+                const errorElement = document.getElementById('event-error');
+                
+                // 驗證輸入
+                if (!title || !dateStr) {
+                    errorElement.textContent = '請填寫標題和日期';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                const date = new Date(dateStr);
+                
+                const saveBtn = document.getElementById('save-event-btn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = '儲存中...';
+                
+                // 獲取當前用戶資料
+                getCurrentUserData().then(userData => {
+                    if (!userData) {
+                        errorElement.textContent = '請先登入';
+                        errorElement.style.display = 'block';
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = '儲存';
+                        return;
+                    }
+                    
+                    // 檢查是否為老師
+                    const isTeacher = userData.role === 'teacher';
+                    
+                    // 新增事件到 Firestore
+                    db.collection('events').add({
+                        title: title,
+                        description: description,
+                        date: firebase.firestore.Timestamp.fromDate(date),
+                        type: type,
+                        authorId: auth.currentUser.uid,
+                        authorName: userData.username,
+                        authorRole: userData.role,
+                        createdAt: timestamp()
+                    })
+                    .then(() => {
+                        // 隱藏表單
+                        eventForm.style.display = 'none';
+                        
+                        showAlert('事件已成功新增');
+                        
+                        // 重新載入日曆
+                        renderCalendar(currentYear, currentMonth);
+                    })
+                    .catch(error => {
+                        console.error('新增事件錯誤:', error);
+                        errorElement.textContent = '新增事件時發生錯誤';
+                        errorElement.style.display = 'block';
+                    })
+                    .finally(() => {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = '儲存';
+                    });
+                });
+            });
+            
+            // 事件詳情模態框
+            const eventDetails = document.getElementById('event-details');
+            const detailsTitle = document.getElementById('details-title');
+            const detailsDescription = document.getElementById('details-description');
+            const detailsDate = document.getElementById('details-date');
+            const detailsType = document.getElementById('details-type');
+            const detailsAuthor = document.getElementById('details-author');
+            const detailsDeleteBtn = document.getElementById('details-delete-btn');
+            
+            // 關閉事件詳情按鈕事件
+            document.querySelectorAll('.event-details-close, #details-close-btn').forEach(element => {
+                element.addEventListener('click', () => {
+                    eventDetails.classList.remove('active');
+                });
+            });
+            
+            // 刪除事件按鈕事件
+            detailsDeleteBtn.addEventListener('click', () => {
+                const eventId = detailsDeleteBtn.dataset.eventId;
+                
+                if (!eventId) return;
+                
+                if (confirm('確定要刪除此事件嗎？')) {
+                    db.collection('events').doc(eventId).delete()
+                        .then(() => {
+                            eventDetails.classList.remove('active');
+                            showAlert('事件已成功刪除');
+                            renderCalendar(currentYear, currentMonth);
+                        })
+                        .catch(error => {
+                            console.error('刪除事件錯誤:', error);
+                            showAlert('刪除事件時發生錯誤', 'danger');
+                        });
+                }
+            });
+            
+            // 渲染日曆
+            function renderCalendar(year, month) {
+                const calendarDays = document.getElementById('calendar-days');
+                const calendarTitle = document.getElementById('calendar-title');
+                
+                // 設置日曆標題
+                const monthNames = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+                calendarTitle.textContent = `${year}年${monthNames[month]}`;
+                
+                // 清空日曆
+                calendarDays.innerHTML = '';
+                
+                // 獲取月份的第一天和最後一天
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                
+                // 獲取月份的第一天是星期幾（0-6，0是星期日）
+                const firstDayOfWeek = firstDay.getDay();
+                
+                // 獲取月份的總天數
+                const daysInMonth = lastDay.getDate();
+                
+                // 獲取上個月的最後幾天
+                const prevMonthLastDay = new Date(year, month, 0).getDate();
+                
+                // 獲取當前日期
+                const today = new Date();
+                const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+                
+                // 載入事件
+                loadEvents(year, month).then(() => {
+                    // 渲染上個月的最後幾天
+                    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+                        const day = prevMonthLastDay - i;
+                        const date = new Date(year, month - 1, day);
+                        const dayElement = createDayElement(date, true);
+                        calendarDays.appendChild(dayElement);
+                    }
+                    
+                    // 渲染當前月份的天數
+                    for (let i = 1; i <= daysInMonth; i++) {
+                        const date = new Date(year, month, i);
+                        const isToday = isCurrentMonth && today.getDate() === i;
+                        const dayElement = createDayElement(date, false, isToday);
+                        calendarDays.appendChild(dayElement);
+                    }
+                    
+                    // 計算需要顯示的下個月的天數
+                    const totalDays = firstDayOfWeek + daysInMonth;
+                    const remainingDays = 42 - totalDays; // 6行7列 = 42天
+                    
+                    // 渲染下個月的前幾天
+                    for (let i = 1; i <= remainingDays; i++) {
+                        const date = new Date(year, month + 1, i);
+                        const dayElement = createDayElement(date, true);
+                        calendarDays.appendChild(dayElement);
+                    }
+                });
+            }
+            
+            // 創建日曆日元素
+            function createDayElement(date, isOtherMonth, isToday = false) {
+                const day = date.getDate();
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                if (isOtherMonth) {
+                    dayElement.classList.add('other-month');
+                }
+                
+                if (isToday) {
+                    dayElement.classList.add('today');
+                }
+                
+                // 日期數字
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                dayElement.appendChild(dayNumber);
+                
+                // 事件列表
+                const eventList = document.createElement('div');
+                eventList.className = 'event-list';
+                
+                // 獲取當天的事件
+                const dateStr = formatDateString(date);
+                const dayEvents = events.filter(event => {
+                    const eventDate = event.date.toDate();
+                    return formatDateString(eventDate) === dateStr;
+                });
+                
+                // 顯示事件
+                dayEvents.forEach(event => {
+                    const eventItem = document.createElement('div');
+                    eventItem.className = `event-item ${event.type}`;
+                    eventItem.textContent = event.title;
+                    eventItem.title = event.title;
+                    
+                    // 點擊事件顯示詳情
+                    eventItem.addEventListener('click', () => {
+                        showEventDetails(event);
+                    });
+                    
+                    eventList.appendChild(eventItem);
+                });
+                
+                dayElement.appendChild(eventList);
+                
+                return dayElement;
+            }
+            
+            // 載入事件
+            function loadEvents(year, month) {
+                // 獲取月份的第一天和最後一天
+                const startDate = new Date(year, month - 1, 1); // 包含上個月
+                const endDate = new Date(year, month + 2, 0); // 包含下個月
+                
+                return db.collection('events')
+                    .where('date', '>=', firebase.firestore.Timestamp.fromDate(startDate))
+                    .where('date', '<=', firebase.firestore.Timestamp.fromDate(endDate))
+                    .get()
+                    .then(snapshot => {
+                        events = [];
+                        snapshot.forEach(doc => {
+                            const event = doc.data();
+                            event.id = doc.id;
+                            events.push(event);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('獲取事件錯誤:', error);
+                        showAlert('載入事件時發生錯誤', 'danger');
+                    });
+            }
+            
+            // 顯示事件詳情
+            function showEventDetails(event) {
+                detailsTitle.textContent = event.title;
+                detailsDescription.textContent = event.description || '無描述';
+                detailsDate.textContent = formatDate(event.date.toDate());
+                
+                // 設置事件類型
+                let typeText = '其他';
+                switch (event.type) {
+                    case 'homework':
+                        typeText = '作業';
+                        break;
+                    case 'exam':
+                        typeText = '考試';
+                        break;
+                    case 'activity':
+                        typeText = '活動';
+                        break;
+                }
+                detailsType.textContent = typeText;
+                
+                detailsAuthor.textContent = `${event.authorName} (${event.authorRole === 'teacher' ? '老師' : '學生'})`;
+                
+                // 檢查是否為事件作者或老師
+                getCurrentUserData().then(userData => {
+                    if (userData && (userData.role === 'teacher' || event.authorId === auth.currentUser?.uid)) {
+                        detailsDeleteBtn.style.display = 'block';
+                        detailsDeleteBtn.dataset.eventId = event.id;
+                    } else {
+                        detailsDeleteBtn.style.display = 'none';
+                    }
+                    
+                    eventDetails.classList.add('active');
+                });
+            }
+            
+            // 格式化日期為 YYYY-MM-DD
+            function formatDateString(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            // 格式化日期為 YYYY-MM-DD (用於 input[type="date"])
+            function formatDateForInput(date) {
+                return formatDateString(date);
+            }
+        });
+    </script>
+</body>
+</html>

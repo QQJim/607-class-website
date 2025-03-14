@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入/註冊 - 607班級網站</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>607班級網站</h1>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="../index.html">首頁</a></li>
+                    <li><a href="announcements.html">最新公告</a></li>
+                    <li><a href="homework.html">作業區</a></li>
+                    <li><a href="photo-album.html">相簿</a></li>
+                    <li><a href="message-board.html">留言板</a></li>
+                    <li><a href="calendar.html">行事曆</a></li>
+                    <li id="user-status"><a href="login.html" class="active">登入/註冊</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </header>
+
+        <main>
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">登入</button>
+                    <button class="auth-tab" data-tab="register">註冊</button>
+                </div>
+                
+                <div class="auth-content">
+                    <!-- 登入表單 -->
+                    <div class="auth-form active" id="login-form">
+                        <div class="form-container">
+                            <h2>登入</h2>
+                            <div id="login-error" class="alert alert-danger" style="display: none;"></div>
+                            
+                            <div class="form-group">
+                                <label for="login-username">用戶名</label>
+                                <input type="text" id="login-username" name="username" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="login-password">密碼</label>
+                                <input type="password" id="login-password" name="password" required>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" id="login-btn" class="btn">登入</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 註冊表單 -->
+                    <div class="auth-form" id="register-form">
+                        <div class="form-container">
+                            <h2>註冊</h2>
+                            <div id="register-error" class="alert alert-danger" style="display: none;"></div>
+                            
+                            <div class="form-group">
+                                <label for="register-username">用戶名</label>
+                                <input type="text" id="register-username" name="username" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="register-password">密碼</label>
+                                <input type="password" id="register-password" name="password" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="register-confirm-password">確認密碼</label>
+                                <input type="password" id="register-confirm-password" name="confirm-password" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>身份</label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="role-student" name="role" value="student" checked>
+                                        <label for="role-student">學生</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="role-teacher" name="role" value="teacher">
+                                        <label for="role-teacher">老師</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" id="register-btn" class="btn">註冊</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>607班級網站</h3>
+                    <p>我們的班級網站致力於提供最佳的線上學習體驗。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速連結</h3>
+                    <ul>
+                        <li><a href="../index.html">首頁</a></li>
+                        <li><a href="announcements.html">最新公告</a></li>
+                        <li><a href="homework.html">作業區</a></li>
+                        <li><a href="photo-album.html">相簿</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>聯絡資訊</h3>
+                    <p><i class="fas fa-envelope"></i> 607class@example.com</p>
+                    <p><i class="fas fa-phone"></i> (02) 1234-5678</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 607班級網站. 版權所有.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- 自定義JavaScript -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化導航欄
+            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+            const mainNav = document.getElementById('main-nav');
+            
+            if (mobileMenuToggle && mainNav) {
+                mobileMenuToggle.addEventListener('click', () => {
+                    mainNav.classList.toggle('active');
+                });
+            }
+            
+            // 切換登入/註冊表單
+            const authTabs = document.querySelectorAll('.auth-tab');
+            const authForms = document.querySelectorAll('.auth-form');
+            
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // 切換標籤活動狀態
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // 切換表單顯示
+                    authForms.forEach(form => {
+                        form.classList.remove('active');
+                        if (form.id === `${tabId}-form`) {
+                            form.classList.add('active');
+                        }
+                    });
+                    
+                    // 清除錯誤訊息
+                    document.getElementById('login-error').style.display = 'none';
+                    document.getElementById('register-error').style.display = 'none';
+                });
+            });
+            
+            // 登入按鈕事件
+            const loginBtn = document.getElementById('login-btn');
+            loginBtn.addEventListener('click', () => {
+                const username = document.getElementById('login-username').value.trim();
+                const password = document.getElementById('login-password').value;
+                const errorElement = document.getElementById('login-error');
+                
+                // 驗證輸入
+                if (!username || !password) {
+                    errorElement.textContent = '請填寫所有欄位';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                // 登入
+                loginBtn.disabled = true;
+                loginBtn.textContent = '登入中...';
+                
+                login(username, password)
+                    .then(() => {
+                        window.location.href = '../index.html';
+                    })
+                    .catch(error => {
+                        let errorMessage = '登入失敗，請檢查用戶名和密碼';
+                        if (error.message === '用戶名不存在') {
+                            errorMessage = '用戶名不存在';
+                        } else if (error.code === 'auth/wrong-password') {
+                            errorMessage = '密碼錯誤';
+                        }
+                        
+                        errorElement.textContent = errorMessage;
+                        errorElement.style.display = 'block';
+                        
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = '登入';
+                    });
+            });
+            
+            // 註冊按鈕事件
+            const registerBtn = document.getElementById('register-btn');
+            registerBtn.addEventListener('click', () => {
+                const username = document.getElementById('register-username').value.trim();
+                const password = document.getElementById('register-password').value;
+                const confirmPassword = document.getElementById('register-confirm-password').value;
+                const role = document.querySelector('input[name="role"]:checked').value;
+                const errorElement = document.getElementById('register-error');
+                
+                // 驗證輸入
+                if (!username || !password || !confirmPassword) {
+                    errorElement.textContent = '請填寫所有欄位';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    errorElement.textContent = '兩次輸入的密碼不一致';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    errorElement.textContent = '密碼長度必須至少為6個字符';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                // 檢查用戶名是否已存在
+                registerBtn.disabled = true;
+                registerBtn.textContent = '檢查用戶名...';
+                
+                checkUsernameExists(username)
+                    .then(exists => {
+                        if (exists) {
+                            errorElement.textContent = '用戶名已被使用';
+                            errorElement.style.display = 'block';
+                            registerBtn.disabled = false;
+                            registerBtn.textContent = '註冊';
+                            return;
+                        }
+                        
+                        // 註冊新用戶
+                        registerBtn.textContent = '註冊中...';
+                        
+                        register(username, password, role)
+                            .then(() => {
+                                window.location.href = '../index.html';
+                            })
+                            .catch(error => {
+                                let errorMessage = '註冊失敗，請稍後再試';
+                                if (error.code === 'auth/email-already-in-use') {
+                                    errorMessage = '電子郵件已被使用';
+                                }
+                                
+                                errorElement.textContent = errorMessage;
+                                errorElement.style.display = 'block';
+                                
+                                registerBtn.disabled = false;
+                                registerBtn.textContent = '註冊';
+                            });
+                    })
+                    .catch(error => {
+                        console.error('檢查用戶名錯誤:', error);
+                        errorElement.textContent = '檢查用戶名時發生錯誤';
+                        errorElement.style.display = 'block';
+                        
+                        registerBtn.disabled = false;
+                        registerBtn.textContent = '註冊';
+                    });
+            });
+            
+            // 按下Enter鍵提交表單
+            document.getElementById('login-password').addEventListener('keyup', event => {
+                if (event.key === 'Enter') {
+                    loginBtn.click();
+                }
+            });
+            
+            document.getElementById('register-confirm-password').addEventListener('keyup', event => {
+                if (event.key === 'Enter') {
+                    registerBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

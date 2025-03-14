@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作業區 - 607班級網站</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>607班級網站</h1>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="../index.html">首頁</a></li>
+                    <li><a href="announcements.html">最新公告</a></li>
+                    <li><a href="homework.html" class="active">作業區</a></li>
+                    <li><a href="photo-album.html">相簿</a></li>
+                    <li><a href="message-board.html">留言板</a></li>
+                    <li><a href="calendar.html">行事曆</a></li>
+                    <li id="user-status"><a href="login.html">登入/註冊</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </header>
+
+        <main>
+            <section class="page-header">
+                <h2>作業區</h2>
+                <p>查看和繳交班級作業</p>
+            </section>
+
+            <!-- 教師控制區域 -->
+            <section id="homework-admin" style="display: none;">
+                <div class="admin-controls">
+                    <button id="add-homework-btn" class="btn">新增作業</button>
+                </div>
+            </section>
+
+            <!-- 作業列表 -->
+            <section class="homework-section">
+                <div class="homework-filter">
+                    <select id="homework-status-filter">
+                        <option value="all">全部作業</option>
+                        <option value="active">進行中</option>
+                        <option value="completed">已截止</option>
+                    </select>
+                </div>
+
+                <div class="homework-list" id="homework-list">
+                    <!-- 作業內容將由JavaScript動態生成 -->
+                    <div class="homework-card skeleton"></div>
+                    <div class="homework-card skeleton"></div>
+                    <div class="homework-card skeleton"></div>
+                </div>
+            </section>
+
+            <!-- 新增作業表單模態框 -->
+            <div id="homework-modal" class="modal-overlay">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>新增作業</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="homework-title">標題</label>
+                            <input type="text" id="homework-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="homework-description">說明</label>
+                            <textarea id="homework-description" rows="4" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="homework-due-date">截止日期</label>
+                            <input type="datetime-local" id="homework-due-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="homework-max-score">滿分</label>
+                            <input type="number" id="homework-max-score" min="1" value="100" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary modal-cancel">取消</button>
+                        <button class="btn modal-confirm" id="save-homework-btn">儲存</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 繳交作業表單模態框 -->
+            <div id="submit-homework-modal" class="modal-overlay">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>繳交作業</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="homework-answer">作業內容</label>
+                            <textarea id="homework-answer" rows="6" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="homework-file">附加檔案 (選填)</label>
+                            <input type="file" id="homework-file">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary modal-cancel">取消</button>
+                        <button class="btn modal-confirm" id="submit-homework-btn">繳交</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 評分作業表單模態框 -->
+            <div id="grade-homework-modal" class="modal-overlay">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>評分作業</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="student-submission-content"></div>
+                        <div class="form-group">
+                            <label for="homework-score">分數</label>
+                            <input type="number" id="homework-score" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="homework-feedback">回饋</label>
+                            <textarea id="homework-feedback" rows="4"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary modal-cancel">取消</button>
+                        <button class="btn modal-confirm" id="save-grade-btn">儲存</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>607班級網站</h3>
+                    <p>我們的班級網站致力於提供最佳的線上學習體驗。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速連結</h3>
+                    <ul>
+                        <li><a href="../index.html">首頁</a></li>
+                        <li><a href="announcements.html">最新公告</a></li>
+                        <li><a href="homework.html">作業區</a></li>
+                        <li><a href="photo-album.html">相簿</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>聯絡資訊</h3>
+                    <p><i class="fas fa-envelope"></i> 607class@example.com</p>
+                    <p><i class="fas fa-phone"></i> (02) 1234-5678</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 607班級網站. 版權所有.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    
+    <!-- 自定義JavaScript -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化導航欄
+            initNavigation();
+            
+            // 載入作業列表
+            loadHomeworks();
+            
+            // 檢查用戶角色，顯示/隱藏教師控制項
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    getCurrentUserRole().then(role => {
+                        if (role === 'teacher') {
+                            document.getElementById('homework-admin').style.display = 'block';
+                        }
+                    });
+                }
+            });
+            
+            // 作業狀態過濾器事件
+            document.getElementById('homework-status-filter').addEventListener('change', function() {
+                loadHomeworks(this.value);
+            });
+            
+            // 新增作業按鈕事件
+            const addHomeworkBtn = document.getElementById('add-homework-btn');
+            const homeworkModal = document.getElementById('homework-modal');
+            
+            addHomeworkBtn.addEventListener('click', () => {
+                // 清空表單
+                document.getElementById('homework-title').value = '';
+                document.getElementById('homework-description').value = '';
+                document.getElementById('homework-due-date').value = '';
+                document.getElementById('homework-max-score').value = '100';
+                
+                // 顯示模態框
+                homeworkModal.classList.add('active');
+            });
+            
+            // 關閉模態框
+            document.querySelectorAll('.modal-close, .modal-cancel').forEach(element => {
+                element.addEventListener('click', () => {
+                    document.querySelectorAll('.modal-overlay').forEach(modal => {
+                        modal.classList.remove('active');
+                    });
+                });
+            });
+            
+            // 儲存作業
+            document.getElementById('save-homework-btn').addEventListener('click', () => {
+                const title = document.getElementById('homework-title').value.trim();
+                const description = document.getElementById('homework-description').value.trim();
+                const dueDate = document.getElementById('homework-due-date').value;
+                const maxScore = document.getElementById('homework-max-score').value;
+                
+                if (!title || !description || !dueDate || !maxScore) {
+                    alert('請填寫所有欄位');
+                    return;
+                }
+                
+                const saveBtn = document.getElementById('save-homework-btn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = '儲存中...';
+                
+                // 獲取當前用戶資料
+                getCurrentUserData().then(userData => {
+                    if (!userData) {
+                        alert('請先登入');
+                        homeworkModal.classList.remove('active');
+                        return;
+                    }
+                    
+                    // 新增作業到 Firestore
+                    db.collection('homeworks').add({
+                        title: title,
+                        description: description,
+                        dueDate: new Date(dueDate),
+                        maxScore: parseInt(maxScore),
+                        teacherId: auth.currentUser.uid,
+                        teacherName: userData.username,
+                        createdAt: timestamp()
+                    })
+                    .then(() => {
+                        homeworkModal.classList.remove('active');
+                        showAlert('作業已成功發布');
+                        loadHomeworks(); // 重新載入作業列表
+                    })
+                    .catch(error => {
+                        console.error('新增作業錯誤:', error);
+                        alert('發布作業時發生錯誤');
+                    })
+                    .finally(() => {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = '儲存';
+                    });
+                });
+            });
+            
+            // 繳交作業
+            document.getElementById('submit-homework-btn').addEventListener('click', function() {
+                const answer = document.getElementById('homework-answer').value.trim();
+                const fileInput = document.getElementById('homework-file');
+                const homeworkId = this.dataset.homeworkId;
+                
+                if (!answer) {
+                    alert('請填寫作業內容');
+                    return;
+                }
+                
+                const submitBtn = document.getElementById('submit-homework-btn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = '繳交中...';
+                
+                // 獲取當前用戶資料
+                getCurrentUserData().then(userData => {
+                    if (!userData) {
+                        alert('請先登入');
+                        document.getElementById('submit-homework-modal').classList.remove('active');
+                        return;
+                    }
+                    
+                    let submissionData = {
+                        homeworkId: homeworkId,
+                        studentId: auth.currentUser.uid,
+                        studentName: userData.username,
+                        answer: answer,
+                        submittedAt: timestamp(),
+                        status: 'submitted'
+                    };
+                    
+                    // 如果有上傳檔案
+                    if (fileInput.files.length > 0) {
+                        const file = fileInput.files[0];
+                        const storageRef = storage.ref(`homework_files/${homeworkId}/${auth.currentUser.uid}/${file.name}`);
+                        
+                        storageRef.put(file).then(snapshot => {
+                            return snapshot.ref.getDownloadURL();
+                        })
+                        .then(downloadURL => {
+                            submissionData.fileURL = downloadURL;
+                            submissionData.fileName = file.name;
+                            
+                            return saveSubmission(submissionData);
+                        })
+                        .catch(error => {
+                            console.error('上傳檔案錯誤:', error);
+                            alert('上傳檔案時發生錯誤');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '繳交';
+                        });
+                    } else {
+                        saveSubmission(submissionData);
+                    }
+                });
+                
+                function saveSubmission(data) {
+                    // 檢查是否已經繳交過
+                    db.collection('homework_submissions')
+                        .where('homeworkId', '==', data.homeworkId)
+                        .where('studentId', '==', data.studentId)
+                        .get()
+                        .then(snapshot => {
+                            if (!snapshot.empty) {
+                                // 已經繳交過，更新資料
+                                const docId = snapshot.docs[0].id;
+                                return db.collection('homework_submissions').doc(docId).update(data);
+                            } else {
+                                // 尚未繳交，新增資料
+                                return db.collection('homework_submissions').add(data);
+                            }
+                        })
+                        .then(() => {
+                            document.getElementById('submit-homework-modal').classList.remove('active');
+                            showAlert('作業已成功繳交');
+                            loadHomeworks(); // 重新載入作業列表
+                        })
+                        .catch(error => {
+                            console.error('繳交作業錯誤:', error);
+                            alert('繳交作業時發生錯誤');
+                        })
+                        .finally(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '繳交';
+                        });
+                }
+            });
+            
+            // 儲存評分
+            document.getElementById('save-grade-btn').addEventListener('click', function() {
+                const score = document.getElementById('homework-score').value;
+                const feedback = document.getElementById('homework-feedback').value.trim();
+                const submissionId = this.dataset.submissionId;
+                
+                if (!score) {
+                    alert('請填寫分數');
+                    return;
+                }
+                
+                const saveBtn = document.getElementById('save-grade-btn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = '儲存中...';
+                
+                // 更新作業評分
+                db.collection('homework_submissions').doc(submissionId).update({
+                    score: parseInt(score),
+                    feedback: feedback,
+                    status: 'graded',
+                    gradedAt: timestamp()
+                })
+                .then(() => {
+                    document.getElementById('grade-homework-modal').classList.remove('active');
+                    showAlert('評分已成功儲存');
+                    loadHomeworks(); // 重新載入作業列表
+                })
+                .catch(error => {
+                    console.error('評分作業錯誤:', error);
+                    alert('評分作業時發生錯誤');
+                })
+                .finally(() => {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '儲存';
+                });
+            });
+        });
+        
+        // 載入作業列表
+        function loadHomeworks(status = 'all') {
+            const homeworkList = document.getElementById('homework-list');
+            homeworkList.innerHTML = '<div class="homework-card skeleton"></div><div class="homework-card skeleton"></div><div class="homework-card skeleton"></div>';
+            
+            // 從 Firestore 獲取作業列表
+            db.collection('homeworks')
+                .orderBy('dueDate', 'desc')
+                .get()
+                .then(snapshot => {
+                    homeworkList.innerHTML = '';
+                    
+                    if (snapshot.empty) {
+                        homeworkList.innerHTML = '<p class="no-data">目前沒有作業</p>';
+                        return;
+                    }
+                    
+                    const now = new Date();
+                    let homeworks = [];
+                    
+                    snapshot.forEach(doc => {
+                        const homework = doc.data();
+                        homework.id = doc.id;
+                        homework.dueDate = homework.dueDate.toDate();
+                        homework.isExpired = homework.dueDate < now;
+                        
+                        if (status === 'all' || 
+                            (status === 'active' && !homework.isExpired) || 
+                            (status === 'completed' && homework.isExpired)) {
+                            homeworks.push(homework);
+                        }
+                    });
+                    
+                    if (homeworks.length === 0) {
+                        homeworkList.innerHTML = '<p class="no-data">沒有符合條件的作業</p>';
+                        return;
+                    }
+                    
+                    // 檢查當前用戶角色和作業繳交狀態
+                    getCurrentUserRole().then(role => {
+                        const userId = auth.currentUser ? auth.currentUser.uid : null;
+                        
+                        // 獲取所有作業的繳交狀態
+                        const homeworkIds = homeworks.map(hw => hw.id);
+                        let submissionsPromise;
+                        
+                        if (role === 'teacher') {
+                            // 老師查看所有學生的繳交狀態
+                            submissionsPromise = db.collection('homework_submissions')
+                                .where('homeworkId', 'in', homeworkIds)
+                                .get()
+                                .then(snapshot => {
+                                    const submissions = {};
+                                    snapshot.forEach(doc => {
+                                        const submission = doc.data();
+                                        submission.id = doc.id;
+                                        
+                                        if (!submissions[submission.homeworkId]) {
+                                            submissions[submission.homeworkId] = [];
+                                        }
+                                        submissions[submission.homeworkId].push(submission);
+                                    });
+                                    return submissions;
+                                });
+                        } else if (userId) {
+                            // 學生只查看自己的繳交狀態
+                            submissionsPromise = db.collection('homework_submissions')
+                                .where('homeworkId', 'in', homeworkIds)
+                                .where('studentId', '==', userId)
+                                .get()
+                                .then(snapshot => {
+                                    const submissions = {};
+                                    snapshot.forEach(doc => {
+                                        const submission = doc.data();
+                                        submission.id = doc.id;
+                                        submissions[submission.homeworkId] = submission;
+                                    });
+                                    return submissions;
+                                });
+                        } else {
+                            // 未登入用戶
+                            submissionsPromise = Promise.resolve({});
+                        }
+                        
+                        submissionsPromise.then(submissions => {
+                            homeworks.forEach(homework => {
+                                const homeworkCard = document.createElement('div');
+                                homeworkCard.className = 'homework-card';
+                                
+                                // 格式化截止日期
+                                const formattedDueDate = formatDate(homework.dueDate) + ' ' + 
+                                    homework.dueDate.getHours().toString().padStart(2, '0') + ':' + 
+                                    homework.dueDate.getMinutes().toString().padStart(2, '0');
+                                
+                                // 計算作業狀態
+                                let statusText = '';
+                                let statusClass = '';
+                                
+                                if (role === 'teacher') {
+                                    // 老師查看繳交狀態
+                                    const submittedCount = submissions[homework.id] ? submissions[homework.id].length : 0;
+                                    statusText = `已繳交: ${submittedCount} 份`;
+                                    statusClass = 'status-info';
+                                } else if (userId) {
+                                    // 學生查看自己的繳交狀態
+                                    const submission = submissions[homework.id];
+                                    
+                                    if (submission) {
+                                        if (submission.status === 'graded') {
+                                            statusText = `已評分: ${submission.score}/${homework.maxScore}`;
+                                            statusClass = 'status-success';
+                                        } else {
+                                            statusText = '已繳交';
+                                            statusClass = 'status-success';
+                                        }
+                                    } else if (homework.isExpired) {
+                                        statusText = '已截止';
+                                        statusClass = 'status-danger';
+                                    } else {
+                                        statusText = '未繳交';
+                                        statusClass = 'status-warning';
+                                    }
+                                } else {
+                                    // 未登入用戶
+                                    statusText = homework.isExpired ? '已截止' : '進行中';
+                                    statusClass = homework.isExpired ? 'status-danger' : 'status-info';
+                                }
+                                
+                                homeworkCard.innerHTML = `
+                                    <div class="homework-header">
+                                        <h3>${homework.title}</h3>
+                                        <div class="homework-status ${statusClass}">${statusText}</div>
+                                    </div>
+                                    <div class="homework-body">
+                                        <p>${homework.description}</p>
+                                    </div>
+                                    <div class="homework-footer">
+                                        <div class="homework-meta">
+                                            <div><i class="far fa-calendar-alt"></i> 截止日期: ${formattedDueDate}</div>
+                                            <div><i class="fas fa-star"></i> 滿分: ${homework.maxScore}</div>
+                                        </div>
+                                        <div class="homework-actions" id="actions-${homework.id}">
+                                            <!-- 按鈕將由JavaScript動態生成 -->
+                                        </div>
+                                    </div>
+                                `;
+                                
+                                homeworkList.appendChild(homeworkCard);
+                                
+                                // 添加操作按鈕
+                                const actionsContainer = document.getElementById(`actions-${homework.id}`);
+                                
+                                if (role === 'teacher') {
+                                    // 老師可以查看繳交情況
+                                    const viewBtn = document.createElement('button');
+                                    viewBtn.className = 'btn btn-secondary';
+                                    viewBtn.textContent = '查看繳交情況';
+                                    viewBtn.addEventListener('click', () => {
+                                        window.location.href = `homework-submissions.html?id=${homework.id}`;
+                                    });
+                                    actionsContainer.appendChild(viewBtn);
+                                } else if (userId) {
+                                    // 學生可以繳交作業
+                                    const submission = submissions[homework.id];
+                                    
+                                    if (submission && submission.status === 'graded') {
+                                        // 已評分，可以查看評語
+                                        const viewBtn = document.createElement('button');
+                                        viewBtn.className = 'btn btn-secondary';
+                                        viewBtn.textContent = '查看評語';
+                                        viewBtn.addEventListener('click', () => {
+                                            showModal('作業評語', `
+                                                <div class="graded-homework">
+                                                    <p><strong>分數:</strong> ${submission.score}/${homework.maxScore}</p>
+                                                    <p><strong>評語:</strong> ${submission.feedback || '無'}</p>
+                                                    <p><strong>繳交時間:</strong> ${formatDate(submission.submittedAt.toDate())}</p>
+                                                    <p><strong>評分時間:</strong> ${formatDate(submission.gradedAt.toDate())}</p>
+                                                    <div class="submission-content">
+                                                        <h4>繳交內容:</h4>
+                                                        <p>${submission.answer}</p>
+                                                        ${submission.fileURL ? `<p><a href="${submission.fileURL}" target="_blank">下載附件: ${submission.fileName}</a></p>` : ''}
+                                                    </div>
+                                                </div>
+                                            `);
+                                        });
+                                        actionsContainer.appendChild(viewBtn);
+                                    } else if (submission) {
+                                        // 已繳交但未評分，可以編輯
+                                        const editBtn = document.createElement('button');
+                                        editBtn.className = 'btn';
+                                        editBtn.textContent = '編輯作業';
+                                        editBtn.addEventListener('click', () => {
+                                            // 顯示繳交作業模態框
+                                            document.getElementById('homework-answer').value = submission.answer;
+                                            document.getElementById('submit-homework-btn').dataset.homeworkId = homework.id;
+                                            document.getElementById('submit-homework-modal').classList.add('active');
+                                        });
+                                        actionsContainer.appendChild(editBtn);
+                                    } else if (!homework.isExpired) {
+                                        // 未繳交且未截止，可以繳交
+                                        const submitBtn = document.createElement('button');
+                                        submitBtn.className = 'btn';
+                                        submitBtn.textContent = '繳交作業';
+                                        submitBtn.addEventListener('click', () => {
+                                            // 顯示繳交作業模態框
+                                            document.getElementById('homework-answer').value = '';
+                                            document.getElementById('homework-file').value = '';
+                                            document.getElementById('submit-homework-btn').dataset.homeworkId = homework.id;
+                                            document.getElementById('submit-homework-modal').classList.add('active');
+                                        });
+                                        actionsContainer.appendChild(submitBtn);
+                                    }
+                                } else {
+                                    // 未登入用戶，顯示登入提示
+                                    const loginBtn = document.createElement('button');
+                                    loginBtn.className = 'btn';
+                                    loginBtn.textContent = '登入以繳交作業';
+                                    loginBtn.addEventListener('click', () => {
+                                        window.location.href = 'login.html';
+                                    });
+                                    actionsContainer.appendChild(loginBtn);
+                                }
+                            });
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('獲取作業錯誤:', error);
+                    homeworkList.innerHTML = '<p class="error">載入作業時發生錯誤</p>';
+                });
+        }
+    </script>
+</body>
+</html>

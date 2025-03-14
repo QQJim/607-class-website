@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最新公告 - 607班級網站</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>607班級網站</h1>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="../index.html">首頁</a></li>
+                    <li><a href="announcements.html" class="active">最新公告</a></li>
+                    <li><a href="homework.html">作業區</a></li>
+                    <li><a href="photo-album.html">相簿</a></li>
+                    <li><a href="message-board.html">留言板</a></li>
+                    <li><a href="calendar.html">行事曆</a></li>
+                    <li id="user-status"><a href="login.html">登入/註冊</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </header>
+
+        <main>
+            <section class="page-header">
+                <h2>最新公告</h2>
+                <p>查看班級的最新消息和重要公告</p>
+            </section>
+
+            <section class="announcements-section">
+                <div id="teacher-controls" style="display: none;">
+                    <button id="add-announcement-btn" class="btn">新增公告</button>
+                </div>
+
+                <div class="announcements-container" id="announcements-list">
+                    <!-- 公告內容將由JavaScript動態生成 -->
+                    <div class="announcement-card skeleton"></div>
+                    <div class="announcement-card skeleton"></div>
+                    <div class="announcement-card skeleton"></div>
+                    <div class="announcement-card skeleton"></div>
+                    <div class="announcement-card skeleton"></div>
+                </div>
+
+                <div id="pagination" class="pagination">
+                    <!-- 分頁控制將由JavaScript動態生成 -->
+                </div>
+            </section>
+
+            <!-- 新增公告表單模態框 -->
+            <div id="announcement-modal" class="modal-overlay">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>新增公告</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="announcement-title">標題</label>
+                            <input type="text" id="announcement-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="announcement-content">內容</label>
+                            <textarea id="announcement-content" rows="6" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary modal-cancel">取消</button>
+                        <button class="btn modal-confirm" id="save-announcement-btn">儲存</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>607班級網站</h3>
+                    <p>我們的班級網站致力於提供最佳的線上學習體驗。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速連結</h3>
+                    <ul>
+                        <li><a href="../index.html">首頁</a></li>
+                        <li><a href="announcements.html">最新公告</a></li>
+                        <li><a href="homework.html">作業區</a></li>
+                        <li><a href="photo-album.html">相簿</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>聯絡資訊</h3>
+                    <p><i class="fas fa-envelope"></i> 607class@example.com</p>
+                    <p><i class="fas fa-phone"></i> (02) 1234-5678</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 607班級網站. 版權所有.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- 自定義JavaScript -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化導航欄
+            initNavigation();
+            
+            // 載入公告
+            loadAnnouncements();
+            
+            // 檢查用戶角色，顯示/隱藏教師控制項
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    getCurrentUserRole().then(role => {
+                        if (role === 'teacher') {
+                            document.getElementById('teacher-controls').style.display = 'block';
+                        }
+                    });
+                }
+            });
+            
+            // 新增公告按鈕事件
+            const addAnnouncementBtn = document.getElementById('add-announcement-btn');
+            const announcementModal = document.getElementById('announcement-modal');
+            const modalClose = announcementModal.querySelector('.modal-close');
+            const modalCancel = announcementModal.querySelector('.modal-cancel');
+            const saveAnnouncementBtn = document.getElementById('save-announcement-btn');
+            
+            addAnnouncementBtn.addEventListener('click', () => {
+                // 清空表單
+                document.getElementById('announcement-title').value = '';
+                document.getElementById('announcement-content').value = '';
+                
+                // 顯示模態框
+                announcementModal.classList.add('active');
+            });
+            
+            // 關閉模態框
+            modalClose.addEventListener('click', () => {
+                announcementModal.classList.remove('active');
+            });
+            
+            modalCancel.addEventListener('click', () => {
+                announcementModal.classList.remove('active');
+            });
+            
+            // 儲存公告
+            saveAnnouncementBtn.addEventListener('click', () => {
+                const title = document.getElementById('announcement-title').value.trim();
+                const content = document.getElementById('announcement-content').value.trim();
+                
+                if (!title || !content) {
+                    alert('請填寫所有欄位');
+                    return;
+                }
+                
+                saveAnnouncementBtn.disabled = true;
+                saveAnnouncementBtn.textContent = '儲存中...';
+                
+                // 獲取當前用戶資料
+                getCurrentUserData().then(userData => {
+                    if (!userData) {
+                        alert('請先登入');
+                        announcementModal.classList.remove('active');
+                        return;
+                    }
+                    
+                    // 新增公告到 Firestore
+                    db.collection('announcements').add({
+                        title: title,
+                        content: content,
+                        authorId: auth.currentUser.uid,
+                        authorName: userData.username,
+                        createdAt: timestamp()
+                    })
+                    .then(() => {
+                        announcementModal.classList.remove('active');
+                        showAlert('公告已成功發布');
+                        loadAnnouncements(); // 重新載入公告
+                    })
+                    .catch(error => {
+                        console.error('新增公告錯誤:', error);
+                        alert('發布公告時發生錯誤');
+                    })
+                    .finally(() => {
+                        saveAnnouncementBtn.disabled = false;
+                        saveAnnouncementBtn.textContent = '儲存';
+                    });
+                });
+            });
+        });
+        
+        // 載入公告列表
+        function loadAnnouncements(page = 1) {
+            const announcementsContainer = document.getElementById('announcements-list');
+            const paginationContainer = document.getElementById('pagination');
+            const itemsPerPage = 5;
+            
+            // 從 Firestore 獲取公告總數
+            db.collection('announcements').get()
+                .then(snapshot => {
+                    const totalItems = snapshot.size;
+                    const totalPages = Math.ceil(totalItems / itemsPerPage);
+                    
+                    // 從 Firestore 獲取分頁公告
+                    db.collection('announcements')
+                        .orderBy('createdAt', 'desc')
+                        .limit(itemsPerPage)
+                        .get()
+                        .then(snapshot => {
+                            // 清除載入中的骨架屏
+                            announcementsContainer.innerHTML = '';
+                            
+                            if (snapshot.empty) {
+                                announcementsContainer.innerHTML = '<p class="no-data">目前沒有公告</p>';
+                                return;
+                            }
+                            
+                            snapshot.forEach(doc => {
+                                const announcement = doc.data();
+                                const date = announcement.createdAt ? announcement.createdAt.toDate() : new Date();
+                                const formattedDate = formatDate(date);
+                                
+                                const announcementCard = document.createElement('div');
+                                announcementCard.className = 'announcement-card';
+                                announcementCard.innerHTML = `
+                                    <h3>${announcement.title}</h3>
+                                    <p>${announcement.content.length > 200 ? announcement.content.substring(0, 200) + '...' : announcement.content}</p>
+                                    <div class="announcement-meta">
+                                        <div class="date"><i class="far fa-calendar-alt"></i> ${formattedDate}</div>
+                                        <div class="author"><i class="far fa-user"></i> ${announcement.authorName || '管理員'}</div>
+                                    </div>
+                                `;
+                                
+                                // 添加點擊事件，導航到公告詳情頁面
+                                announcementCard.addEventListener('click', () => {
+                                    window.location.href = `announcement-detail.html?id=${doc.id}`;
+                                });
+                                
+                                announcementsContainer.appendChild(announcementCard);
+                            });
+                            
+                            // 渲染分頁控制
+                            renderPagination(page, totalPages);
+                        })
+                        .catch(error => {
+                            console.error('獲取公告錯誤:', error);
+                            announcementsContainer.innerHTML = '<p class="error">載入公告時發生錯誤</p>';
+                        });
+                })
+                .catch(error => {
+                    console.error('獲取公告總數錯誤:', error);
+                    announcementsContainer.innerHTML = '<p class="error">載入公告時發生錯誤</p>';
+                });
+        }
+        
+        // 渲染分頁控制
+        function renderPagination(currentPage, totalPages) {
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = '';
+            
+            if (totalPages <= 1) {
+                return;
+            }
+            
+            // 上一頁按鈕
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'pagination-btn';
+            prevBtn.innerHTML = '&laquo;';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    loadAnnouncements(currentPage - 1);
+                }
+            });
+            paginationContainer.appendChild(prevBtn);
+            
+            // 頁碼按鈕
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', () => {
+                    loadAnnouncements(i);
+                });
+                paginationContainer.appendChild(pageBtn);
+            }
+            
+            // 下一頁按鈕
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'pagination-btn';
+            nextBtn.innerHTML = '&raquo;';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    loadAnnouncements(currentPage + 1);
+                }
+            });
+            paginationContainer.appendChild(nextBtn);
+        }
+    </script>
+</body>
+</html>

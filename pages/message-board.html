@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板 - 607班級網站</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .message-board {
+            margin: 30px 0;
+        }
+        
+        .message-list {
+            margin-bottom: 30px;
+        }
+        
+        .message-item {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .message-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .author-info h4 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+        
+        .author-info small {
+            color: var(--light-text);
+        }
+        
+        .message-content {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .message-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+        
+        .message-actions button {
+            background: none;
+            border: none;
+            color: var(--light-text);
+            cursor: pointer;
+            margin-left: 15px;
+            transition: color 0.3s;
+        }
+        
+        .message-actions button:hover {
+            color: var(--primary-color);
+        }
+        
+        .message-form {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .replies-container {
+            margin-left: 50px;
+            margin-top: 15px;
+        }
+        
+        .reply-item {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .reply-author {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .reply-date {
+            font-size: 0.8rem;
+            color: var(--light-text);
+        }
+        
+        .reply-content {
+            margin-bottom: 10px;
+        }
+        
+        .reply-form {
+            display: none;
+            margin-top: 15px;
+        }
+        
+        .reply-form.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>607班級網站</h1>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="../index.html">首頁</a></li>
+                    <li><a href="announcements.html">最新公告</a></li>
+                    <li><a href="homework.html">作業區</a></li>
+                    <li><a href="photo-album.html">相簿</a></li>
+                    <li><a href="message-board.html" class="active">留言板</a></li>
+                    <li><a href="calendar.html">行事曆</a></li>
+                    <li id="user-status"><a href="login.html">登入/註冊</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </header>
+
+        <main>
+            <section class="page-header">
+                <h2>留言板</h2>
+                <p>與同學和老師交流想法</p>
+            </section>
+
+            <section class="message-board">
+                <!-- 留言表單 -->
+                <div class="message-form">
+                    <h3>發表留言</h3>
+                    <div id="message-error" class="alert alert-danger" style="display: none;"></div>
+                    
+                    <div class="form-group">
+                        <label for="message-title">標題</label>
+                        <input type="text" id="message-title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message-content">內容</label>
+                        <textarea id="message-content" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="post-message-btn" class="btn">發表留言</button>
+                    </div>
+                </div>
+
+                <!-- 留言列表 -->
+                <div class="message-list" id="message-list">
+                    <!-- 留言內容將由JavaScript動態生成 -->
+                    <div class="message-item skeleton"></div>
+                    <div class="message-item skeleton"></div>
+                    <div class="message-item skeleton"></div>
+                </div>
+
+                <div id="load-more-container" class="view-more" style="display: none;">
+                    <button id="load-more-btn" class="btn">載入更多</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>607班級網站</h3>
+                    <p>我們的班級網站致力於提供最佳的線上學習體驗。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速連結</h3>
+                    <ul>
+                        <li><a href="../index.html">首頁</a></li>
+                        <li><a href="announcements.html">最新公告</a></li>
+                        <li><a href="homework.html">作業區</a></li>
+                        <li><a href="photo-album.html">相簿</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>聯絡資訊</h3>
+                    <p><i class="fas fa-envelope"></i> 607class@example.com</p>
+                    <p><i class="fas fa-phone"></i> (02) 1234-5678</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 607班級網站. 版權所有.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- 自定義JavaScript -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化導航欄
+            initNavigation();
+            
+            // 全局變數
+            let lastVisible = null;
+            const messagesPerPage = 10;
+            
+            // 載入留言
+            loadMessages();
+            
+            // 載入更多按鈕事件
+            document.getElementById('load-more-btn').addEventListener('click', () => {
+                loadMessages();
+            });
+            
+            // 發表留言按鈕事件
+            const postMessageBtn = document.getElementById('post-message-btn');
+            
+            postMessageBtn.addEventListener('click', () => {
+                // 檢查用戶是否登入
+                if (!auth.currentUser) {
+                    showAlert('請先登入後再發表留言', 'danger');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                    return;
+                }
+                
+                const title = document.getElementById('message-title').value.trim();
+                const content = document.getElementById('message-content').value.trim();
+                const errorElement = document.getElementById('message-error');
+                
+                // 驗證輸入
+                if (!title || !content) {
+                    errorElement.textContent = '請填寫所有欄位';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                postMessageBtn.disabled = true;
+                postMessageBtn.textContent = '發表中...';
+                
+                // 獲取當前用戶資料
+                getCurrentUserData().then(userData => {
+                    if (!userData) {
+                        errorElement.textContent = '請先登入';
+                        errorElement.style.display = 'block';
+                        postMessageBtn.disabled = false;
+                        postMessageBtn.textContent = '發表留言';
+                        return;
+                    }
+                    
+                    // 新增留言到 Firestore
+                    db.collection('messages').add({
+                        title: title,
+                        content: content,
+                        authorId: auth.currentUser.uid,
+                        authorName: userData.username,
+                        authorRole: userData.role,
+                        createdAt: timestamp(),
+                        replyCount: 0
+                    })
+                    .then(() => {
+                        // 清空表單
+                        document.getElementById('message-title').value = '';
+                        document.getElementById('message-content').value = '';
+                        errorElement.style.display = 'none';
+                        
+                        showAlert('留言已成功發表');
+                        
+                        // 重新載入留言列表
+                        lastVisible = null;
+                        loadMessages(true);
+                    })
+                    .catch(error => {
+                        console.error('發表留言錯誤:', error);
+                        errorElement.textContent = '發表留言時發生錯誤';
+                        errorElement.style.display = 'block';
+                    })
+                    .finally(() => {
+                        postMessageBtn.disabled = false;
+                        postMessageBtn.textContent = '發表留言';
+                    });
+                });
+            });
+            
+            // 載入留言列表
+            function loadMessages(reset = false) {
+                const messageList = document.getElementById('message-list');
+                const loadMoreContainer = document.getElementById('load-more-container');
+                
+                if (reset) {
+                    messageList.innerHTML = `
+                        <div class="message-item skeleton"></div>
+                        <div class="message-item skeleton"></div>
+                        <div class="message-item skeleton"></div>
+                    `;
+                }
+                
+                // 建立查詢
+                let query = db.collection('messages').orderBy('createdAt', 'desc');
+                
+                // 套用分頁
+                if (lastVisible) {
+                    query = query.startAfter(lastVisible);
+                }
+                
+                // 限制每頁數量
+                query = query.limit(messagesPerPage);
+                
+                // 執行查詢
+                query.get()
+                    .then(snapshot => {
+                        // 如果是重置，清空留言列表
+                        if (reset) {
+                            messageList.innerHTML = '';
+                        }
+                        
+                        // 如果沒有更多留言
+                        if (snapshot.empty) {
+                            if (reset) {
+                                messageList.innerHTML = '<p class="no-data">目前沒有留言</p>';
+                            }
+                            loadMoreContainer.style.display = 'none';
+                            return;
+                        }
+                        
+                        // 更新最後一個可見項目
+                        lastVisible = snapshot.docs[snapshot.docs.length - 1];
+                        
+                        // 顯示留言
+                        snapshot.forEach(doc => {
+                            const message = doc.data();
+                            message.id = doc.id;
+                            
+                            // 創建留言元素
+                            const messageItem = document.createElement('div');
+                            messageItem.className = 'message-item';
+                            
+                            // 獲取作者頭像字母
+                            const authorInitial = message.authorName.charAt(0).toUpperCase();
+                            
+                            // 格式化日期
+                            const date = message.createdAt.toDate();
+                            const formattedDate = formatDate(date);
+                            
+                            messageItem.innerHTML = `
+                                <div class="message-header">
+                                    <div class="message-author">
+                                        <div class="author-avatar">${authorInitial}</div>
+                                        <div class="author-info">
+                                            <h4>${message.authorName}</h4>
+                                            <small>${message.authorRole === 'teacher' ? '老師' : '學生'}</small>
+                                        </div>
+                                    </div>
+                                    <div class="message-date">
+                                        <i class="far fa-clock"></i> ${formattedDate}
+                                    </div>
+                                </div>
+                                <div class="message-content">
+                                    <h3>${message.title}</h3>
+                                    <p>${message.content}</p>
+                                </div>
+                                <div class="message-footer">
+                                    <div class="message-meta">
+                                        <span><i class="far fa-comment"></i> ${message.replyCount || 0} 則回覆</span>
+                                    </div>
+                                    <div class="message-actions">
+                                        <button class="reply-btn" data-id="${message.id}"><i class="far fa-comment"></i> 回覆</button>
+                                    </div>
+                                </div>
+                                <div class="replies-container" id="replies-${message.id}"></div>
+                                <div class="reply-form" id="reply-form-${message.id}">
+                                    <div class="form-group">
+                                        <textarea id="reply-content-${message.id}" rows="3" placeholder="輸入回覆..."></textarea>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button class="btn btn-secondary cancel-reply-btn" data-id="${message.id}">取消</button>
+                                        <button class="btn submit-reply-btn" data-id="${message.id}">回覆</button>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            messageList.appendChild(messageItem);
+                            
+                            // 載入回覆
+                            loadReplies(message.id);
+                            
+                            // 回覆按鈕事件
+                            messageItem.querySelector('.reply-btn').addEventListener('click', function() {
+                                // 檢查用戶是否登入
+                                if (!auth.currentUser) {
+                                    showAlert('請先登入後再回覆', 'danger');
+                                    setTimeout(() => {
+                                        window.location.href = 'login.html';
+                                    }, 2000);
+                                    return;
+                                }
+                                
+                                // 顯示回覆表單
+                                document.getElementById(`reply-form-${this.dataset.id}`).classList.add('active');
+                            });
+                            
+                            // 取消回覆按鈕事件
+                            messageItem.querySelector('.cancel-reply-btn').addEventListener('click', function() {
+                                document.getElementById(`reply-form-${this.dataset.id}`).classList.remove('active');
+                            });
+                            
+                            // 提交回覆按鈕事件
+                            messageItem.querySelector('.submit-reply-btn').addEventListener('click', function() {
+                                const messageId = this.dataset.id;
+                                const content = document.getElementById(`reply-content-${messageId}`).value.trim();
+                                
+                                if (!content) {
+                                    showAlert('請輸入回覆內容', 'danger');
+                                    return;
+                                }
+                                
+                                this.disabled = true;
+                                this.textContent = '提交中...';
+                                
+                                // 獲取當前用戶資料
+                                getCurrentUserData().then(userData => {
+                                    if (!userData) {
+                                        showAlert('請先登入', 'danger');
+                                        this.disabled = false;
+                                        this.textContent = '回覆';
+                                        return;
+                                    }
+                                    
+                                    // 新增回覆到 Firestore
+                                    db.collection('message_replies').add({
+                                        messageId: messageId,
+                                        content: content,
+                                        authorId: auth.currentUser.uid,
+                                        authorName: userData.username,
+                                        authorRole: userData.role,
+                                        createdAt: timestamp()
+                                    })
+                                    .then(() => {
+                                        // 更新留言回覆數
+                                        return db.collection('messages').doc(messageId).update({
+                                            replyCount: firebase.firestore.FieldValue.increment(1)
+                                        });
+                                    })
+                                    .then(() => {
+                                        // 清空表單
+                                        document.getElementById(`reply-content-${messageId}`).value = '';
+                                        document.getElementById(`reply-form-${messageId}`).classList.remove('active');
+                                        
+                                        showAlert('回覆已成功發表');
+                                        
+                                        // 重新載入回覆
+                                        loadReplies(messageId);
+                                    })
+                                    .catch(error => {
+                                        console.error('發表回覆錯誤:', error);
+                                        showAlert('發表回覆時發生錯誤', 'danger');
+                                    })
+                                    .finally(() => {
+                                        this.disabled = false;
+                                        this.textContent = '回覆';
+                                    });
+                                });
+                            });
+                        });
+                        
+                        // 顯示載入更多按鈕
+                        loadMoreContainer.style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error('獲取留言錯誤:', error);
+                        if (reset) {
+                            messageList.innerHTML = '<p class="error">載入留言時發生錯誤</p>';
+                        }
+                    });
+            }
+            
+            // 載入回覆
+            function loadReplies(messageId) {
+                const repliesContainer = document.getElementById(`replies-${messageId}`);
+                
+                // 從 Firestore 獲取回覆
+                db.collection('message_replies')
+                    .where('messageId', '==', messageId)
+                    .orderBy('createdAt', 'asc')
+                    .get()
+                    .then(snapshot => {
+                        repliesContainer.innerHTML = '';
+                        
+                        if (snapshot.empty) {
+                            return;
+                        }
+                        
+                        snapshot.forEach(doc => {
+                            const reply = doc.data();
+                            
+                            // 格式化日期
+                            const date = reply.createdAt.toDate();
+                            const formattedDate = formatDate(date);
+                            
+                            const replyItem = document.createElement('div');
+                            replyItem.className = 'reply-item';
+                            replyItem.innerHTML = `
+                                <div class="reply-header">
+                                    <div class="reply-author">${reply.authorName} <small>${reply.authorRole === 'teacher' ? '(老師)' : '(學生)'}</small></div>
+                                    <div class="reply-date">${formattedDate}</div>
+                                </div>
+                                <div class="reply-content">
+                                    <p>${reply.content}</p>
+                                </div>
+                            `;
+                            
+                            repliesContainer.appendChild(replyItem);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('獲取回覆錯誤:', error);
+                        repliesContainer.innerHTML = '<p class="error">載入回覆時發生錯誤</p>';
+                    });
+            }
+        });
+    </script>
+</body>
+</html>
