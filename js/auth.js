@@ -93,9 +93,12 @@ function register(username, password, role) {
         // 使用隨機生成的電子郵件格式 (username + 隨機數字 + @example.com)
         const randomEmail = `${username}${Math.floor(Math.random() * 10000)}@example.com`;
         
+        console.log('開始註冊流程，使用電子郵件:', randomEmail);
+        
         auth.createUserWithEmailAndPassword(randomEmail, password)
             .then(userCredential => {
                 // 註冊成功，添加用戶資料到 Firestore
+                console.log('Firebase 身份驗證成功，用戶ID:', userCredential.user.uid);
                 const user = userCredential.user;
                 return db.collection('users').doc(user.uid).set({
                     username: username,
@@ -103,11 +106,40 @@ function register(username, password, role) {
                     createdAt: timestamp(),
                     email: randomEmail
                 }).then(() => {
+                    console.log('用戶資料已成功添加到 Firestore');
+                    resolve(user);
+                }).catch(firestoreError => {
+                    console.error('Firestore 寫入錯誤:', firestoreError);
+                    // 即使 Firestore 寫入失敗，身份驗證仍然成功
                     resolve(user);
                 });
             })
             .catch(error => {
-                console.error('註冊錯誤:', error);
+                console.error('註冊錯誤:', error.code, error.message);
+                
+                // 提供更具體的錯誤信息
+                let errorMessage = '註冊失敗，請稍後再試。';
+                
+                switch(error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = '此電子郵件已被使用，請嘗試其他用戶名。';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = '電子郵件格式無效。';
+                        break;
+                    case 'auth/operation-not-allowed':
+                        errorMessage = '電子郵件/密碼身份驗證未啟用，請聯繫管理員。';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = '密碼強度不足，請使用更強的密碼。';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage = '網絡連接失敗，請檢查您的網絡連接。';
+                        break;
+                }
+                
+                // 將錯誤對象擴展，包含更友好的錯誤信息
+                error.friendlyMessage = errorMessage;
                 reject(error);
             });
     });

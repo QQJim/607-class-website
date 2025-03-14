@@ -264,12 +264,27 @@
                                 window.location.href = '../index.html';
                             })
                             .catch(error => {
-                                let errorMessage = '註冊失敗，請稍後再試';
+                                console.error('註冊錯誤詳情:', error.code, error.message);
+                                
+                                // 使用我們在 auth.js 中添加的友好錯誤信息
+                                let errorMessage = error.friendlyMessage || '註冊失敗，請稍後再試';
+                                
+                                // 顯示更詳細的錯誤信息
                                 if (error.code === 'auth/email-already-in-use') {
                                     errorMessage = '電子郵件已被使用';
+                                } else if (error.code === 'auth/invalid-email') {
+                                    errorMessage = '電子郵件格式無效';
+                                } else if (error.code === 'auth/operation-not-allowed') {
+                                    errorMessage = '電子郵件/密碼身份驗證未啟用，請聯繫管理員';
+                                } else if (error.code === 'auth/weak-password') {
+                                    errorMessage = '密碼強度不足，請使用更強的密碼';
+                                } else if (error.code === 'auth/network-request-failed') {
+                                    errorMessage = '網絡連接失敗，請檢查您的網絡連接';
                                 }
                                 
-                                errorElement.textContent = errorMessage;
+                                // 在頁面上顯示錯誤信息
+                                errorElement.innerHTML = `<strong>錯誤:</strong> ${errorMessage}<br>
+                                                         <small>錯誤代碼: ${error.code || '未知'}</small>`;
                                 errorElement.style.display = 'block';
                                 
                                 registerBtn.disabled = false;

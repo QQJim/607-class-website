@@ -20,4 +20,8 @@ const storage = firebase.storage();
 // 設定 Firestore 時間戳記
 const timestamp = firebase.firestore.FieldValue.serverTimestamp;
 
+// 注意：如果您將此網站部署到 GitHub Pages，請確保在 Firebase 控制台中
+// 將 "https://qqjim.github.io/607-class-website" 添加到授權域名列表中
+// 路徑：Firebase 控制台 > Authentication > Sign-in method > Authorized domains
+
 console.log("Firebase 已初始化");
