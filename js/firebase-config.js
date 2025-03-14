@@ -15,7 +15,39 @@ firebase.initializeApp(firebaseConfig);
 // 取得 Firebase 服務
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
+let storage;
+
+// 安全地初始化 Firebase Storage
+try {
+    if (typeof firebase.storage === 'function') {
+        storage = firebase.storage();
+        console.log("Firebase Storage 已成功初始化");
+    } else {
+        console.warn("Firebase Storage SDK 未加載，某些功能可能不可用");
+        // 創建一個模擬對象，以避免錯誤
+        storage = {
+            ref: function() {
+                console.warn("Firebase Storage 未初始化，無法使用 ref 功能");
+                return {
+                    put: function() { return Promise.reject(new Error("Firebase Storage 未初始化")); },
+                    getDownloadURL: function() { return Promise.reject(new Error("Firebase Storage 未初始化")); }
+                };
+            }
+        };
+    }
+} catch (error) {
+    console.error("初始化 Firebase Storage 時發生錯誤:", error);
+    // 創建一個模擬對象，以避免錯誤
+    storage = {
+        ref: function() {
+            console.warn("Firebase Storage 未初始化，無法使用 ref 功能");
+            return {
+                put: function() { return Promise.reject(new Error("Firebase Storage 未初始化")); },
+                getDownloadURL: function() { return Promise.reject(new Error("Firebase Storage 未初始化")); }
+            };
+        }
+    };
+}
 
 // 設定 Firestore 時間戳記
 const timestamp = firebase.firestore.FieldValue.serverTimestamp;
