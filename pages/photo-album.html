@@ -468,156 +468,131 @@
                         .then(albumRef => {
                             const albumId = albumRef.id;
                             
-                            // 使用 Cloudinary Upload Widget 上傳照片
-                            const uploadPhotosWithWidget = () => {
-                                // 創建 Cloudinary Upload Widget
-                                const myWidget = cloudinary.createUploadWidget({
-                                    cloudName: cloudinaryConfig.cloudName,
-                                    uploadPreset: 'ml_default',
-                                    sources: ['local', 'url', 'camera'],
-                                    multiple: true,
-                                    maxFiles: files.length,
-                                    folder: 'class607',
-                                    tags: ['class607', 'album_' + albumId],
-                                    clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif'],
-                                    maxFileSize: 10000000 // 10MB
-                                }, (error, result) => {
-                                    if (!error && result && result.event === "success") {
-                                        console.log('Cloudinary Widget 上傳成功:', result.info.secure_url);
-                                        
-                                        // 新增照片資料到 Firestore
-                                        db.collection('photos').add({
-                                            albumId: albumId,
-                                            title: title,
-                                            description: description,
-                                            category: category,
-                                            url: result.info.secure_url,
-                                            publicId: result.info.public_id,
-                                            fileName: result.info.original_filename,
-                                            authorId: auth.currentUser.uid,
-                                            authorName: userData.username,
-                                            createdAt: timestamp()
-                                        }).then(() => {
-                                            console.log('照片資料已成功添加到 Firestore');
-                                        }).catch(error => {
-                                            console.error('添加照片資料時發生錯誤:', error);
-                                        });
-                                    } else if (result && result.event === "close") {
-                                        // 當用戶關閉 Widget 時
-                                        console.log('Cloudinary Widget 已關閉');
-                                        
-                                        // 檢查是否有照片上傳成功
-                                        db.collection('photos')
-                                            .where('albumId', '==', albumId)
-                                            .get()
-                                            .then(querySnapshot => {
-                                                if (querySnapshot.empty) {
-                                                    // 如果沒有照片上傳成功，刪除相簿
-                                                    db.collection('albums').doc(albumId).delete()
-                                                        .then(() => {
-                                                            console.log('相簿已刪除（沒有照片上傳）');
-                                                            showAlert('未上傳任何照片，相簿已取消', 'warning');
-                                                        })
-                                                        .catch(error => {
-                                                            console.error('刪除相簿時發生錯誤:', error);
-                                                        });
-                                                } else {
-                                                    // 更新相簿照片數量
-                                                    db.collection('albums').doc(albumId).update({
-                                                        photoCount: querySnapshot.size
-                                                    }).then(() => {
-                                                        console.log('相簿照片數量已更新');
-                                                        showAlert('照片已成功上傳');
-                                                        lastVisible = null;
-                                                        currentPhotos = [];
-                                                        loadPhotos(true); // 重新載入照片列表
-                                                    }).catch(error => {
-                                                        console.error('更新相簿照片數量時發生錯誤:', error);
-                                                    });
-                                                }
-                                                
-                                                // 關閉上傳模態框
-                                                uploadModal.classList.remove('active');
-                                                saveBtn.disabled = false;
-                                                saveBtn.textContent = '上傳';
-                                            })
-                                            .catch(error => {
-                                                console.error('查詢照片時發生錯誤:', error);
-                                                uploadModal.classList.remove('active');
-                                                saveBtn.disabled = false;
-                                                saveBtn.textContent = '上傳';
-                                            });
-                                    } else if (error) {
-                                        console.error('Cloudinary Widget 上傳錯誤:', error);
-                                        showAlert('上傳照片時發生錯誤', 'danger');
-                                        saveBtn.disabled = false;
-                                        saveBtn.textContent = '上傳';
-                                    }
-                                });
-                                
-                                // 打開 Widget
-                                myWidget.open();
-                            };
-                            
-                            // 嘗試使用標準方法上傳
-                            try {
-                                // 首先嘗試使用標準方法上傳第一張照片
-                                const firstFile = files[0];
-                                uploadToCloudinary(firstFile)
-                                    .then(result => {
-                                        console.log('標準方法上傳成功，繼續上傳其他照片');
-                                        
-                                        const uploadPromises = [];
-                                        
-                                        // 上傳每張照片
-                                        for (let i = 0; i < files.length; i++) {
-                                            const file = files[i];
-                                            
-                                            const uploadTask = uploadToCloudinary(file)
-                                            .then(result => {
-                                                // 新增照片資料到 Firestore
-                                                return db.collection('photos').add({
-                                                    albumId: albumId,
-                                                    title: title,
-                                                    description: description,
-                                                    category: category,
-                                                    url: result.url,
-                                                    publicId: result.publicId,
-                                                    fileName: file.name,
-                                                    authorId: auth.currentUser.uid,
-                                                    authorName: userData.username,
-                                                    createdAt: timestamp()
-                                                });
-                                            });
-                                            
-                                            uploadPromises.push(uploadTask);
-                                        }
-                                        
-                                        Promise.all(uploadPromises)
-                                            .then(() => {
-                                                uploadModal.classList.remove('active');
-                                                showAlert('照片已成功上傳');
-                                                lastVisible = null;
-                                                currentPhotos = [];
-                                                loadPhotos(true); // 重新載入照片列表
-                                            })
-                                            .catch(error => {
-                                                console.error('上傳照片錯誤:', error);
-                                                showAlert('上傳照片時發生錯誤', 'danger');
-                                            })
-                                            .finally(() => {
-                                                saveBtn.disabled = false;
-                                                saveBtn.textContent = '上傳';
-                                            });
-                                    })
-                                    .catch(error => {
-                                        console.error('標準方法上傳失敗，切換到 Widget:', error);
-                                        uploadPhotosWithWidget();
-                                    });
-                            } catch (error) {
-                                console.error('嘗試標準上傳方法時發生錯誤，切換到 Widget:', error);
-                                uploadPhotosWithWidget();
+                            // 直接使用 Cloudinary Upload Widget 上傳照片
+                            console.log('正在初始化 Cloudinary Upload Widget...');
+                            if (typeof cloudinary === 'undefined') {
+                                console.error('Cloudinary 未定義，請確保已加載 Cloudinary Widget 腳本');
+                                showAlert('上傳組件未加載，請刷新頁面後重試', 'danger');
+                                saveBtn.disabled = false;
+                                saveBtn.textContent = '上傳';
+                                return;
                             }
+                            
+                            // 創建 Cloudinary Upload Widget
+                            const myWidget = cloudinary.createUploadWidget({
+                                cloudName: cloudinaryConfig.cloudName,
+                                uploadPreset: 'ml_default',
+                                sources: ['local', 'url', 'camera'],
+                                multiple: true,
+                                maxFiles: files.length,
+                                folder: 'class607',
+                                tags: ['class607', 'album_' + albumId],
+                                clientAllowedFormats: ['jpg', 'jpeg', 'png', 'gif'],
+                                maxFileSize: 10000000, // 10MB
+                                showAdvancedOptions: false,
+                                cropping: false,
+                                showUploadMoreButton: false,
+                                singleUploadAutoClose: false,
+                                showPoweredBy: false,
+                                language: 'zh',
+                                text: {
+                                    'zh': {
+                                        'queue': {
+                                            'title': '上傳照片',
+                                            'title_uploading_with_counter': '上傳中 ({{num}} / {{total}})',
+                                            'drop_files_here_or': '拖放文件到這裡或',
+                                            'browse': '瀏覽',
+                                            'browse_files': '瀏覽文件',
+                                            'upload_more': '上傳更多',
+                                            'done': '完成',
+                                            'close': '關閉'
+                                        }
+                                    }
+                                }
+                            }, (error, result) => {
+                                if (error) {
+                                    console.error('Cloudinary Widget 上傳錯誤:', error);
+                                    showAlert('上傳照片時發生錯誤', 'danger');
+                                    saveBtn.disabled = false;
+                                    saveBtn.textContent = '上傳';
+                                    return;
+                                }
+                                
+                                if (!result) {
+                                    return;
+                                }
+                                
+                                if (result.event === "success") {
+                                    console.log('Cloudinary Widget 上傳成功:', result.info.secure_url);
+                                    
+                                    // 新增照片資料到 Firestore
+                                    db.collection('photos').add({
+                                        albumId: albumId,
+                                        title: title,
+                                        description: description,
+                                        category: category,
+                                        url: result.info.secure_url,
+                                        publicId: result.info.public_id,
+                                        fileName: result.info.original_filename,
+                                        authorId: auth.currentUser.uid,
+                                        authorName: userData.username,
+                                        createdAt: timestamp()
+                                    }).then(() => {
+                                        console.log('照片資料已成功添加到 Firestore');
+                                    }).catch(error => {
+                                        console.error('添加照片資料時發生錯誤:', error);
+                                    });
+                                } else if (result.event === "close") {
+                                    // 當用戶關閉 Widget 時
+                                    console.log('Cloudinary Widget 已關閉');
+                                    
+                                    // 檢查是否有照片上傳成功
+                                    db.collection('photos')
+                                        .where('albumId', '==', albumId)
+                                        .get()
+                                        .then(querySnapshot => {
+                                            if (querySnapshot.empty) {
+                                                // 如果沒有照片上傳成功，刪除相簿
+                                                db.collection('albums').doc(albumId).delete()
+                                                    .then(() => {
+                                                        console.log('相簿已刪除（沒有照片上傳）');
+                                                        showAlert('未上傳任何照片，相簿已取消', 'warning');
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('刪除相簿時發生錯誤:', error);
+                                                    });
+                                            } else {
+                                                // 更新相簿照片數量
+                                                db.collection('albums').doc(albumId).update({
+                                                    photoCount: querySnapshot.size
+                                                }).then(() => {
+                                                    console.log('相簿照片數量已更新');
+                                                    showAlert('照片已成功上傳');
+                                                    lastVisible = null;
+                                                    currentPhotos = [];
+                                                    loadPhotos(true); // 重新載入照片列表
+                                                }).catch(error => {
+                                                    console.error('更新相簿照片數量時發生錯誤:', error);
+                                                });
+                                            }
+                                            
+                                            // 關閉上傳模態框
+                                            uploadModal.classList.remove('active');
+                                            saveBtn.disabled = false;
+                                            saveBtn.textContent = '上傳';
+                                        })
+                                        .catch(error => {
+                                            console.error('查詢照片時發生錯誤:', error);
+                                            uploadModal.classList.remove('active');
+                                            saveBtn.disabled = false;
+                                            saveBtn.textContent = '上傳';
+                                        });
+                                }
+                            });
+                            
+                            // 打開 Widget
+                            console.log('打開 Cloudinary Upload Widget');
+                            myWidget.open();
                         })
                         .catch(error => {
                             console.error('創建相簿時發生錯誤:', error);
