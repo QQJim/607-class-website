@@ -183,34 +183,104 @@ function register(username, password, role) {
 // 用戶登入
 function login(username, password) {
     return new Promise((resolve, reject) => {
+        console.log('開始登入流程，用戶名:', username);
+        
         // 先查詢用戶名對應的電子郵件
         db.collection('users')
             .where('username', '==', username)
             .get()
             .then(querySnapshot => {
                 if (querySnapshot.empty) {
-                    reject(new Error('用戶名不存在'));
-                    return;
+                    console.log('用戶名不存在於 Firestore，嘗試使用模擬電子郵件登入');
+                    // 如果在 Firestore 中找不到用戶，嘗試使用模擬電子郵件格式
+                    const possibleEmails = [];
+                    
+                    // 生成幾個可能的電子郵件格式
+                    for (let i = 0; i < 10; i++) {
+                        possibleEmails.push(`${username}${i}@example.com`);
+                    }
+                    
+                    // 嘗試使用這些電子郵件登入
+                    tryLoginWithEmails(possibleEmails, 0, password, resolve, reject);
+                } else {
+                    const userDoc = querySnapshot.docs[0];
+                    const email = userDoc.data().email;
+                    
+                    console.log('找到用戶電子郵件:', email);
+                    
+                    // 使用電子郵件和密碼登入
+                    auth.signInWithEmailAndPassword(email, password)
+                        .then(userCredential => {
+                            console.log('登入成功');
+                            resolve(userCredential.user);
+                        })
+                        .catch(error => {
+                            console.error('登入錯誤:', error);
+                            reject(error);
+                        });
                 }
-                
-                const userDoc = querySnapshot.docs[0];
-                const email = userDoc.data().email;
-                
-                // 使用電子郵件和密碼登入
-                return auth.signInWithEmailAndPassword(email, password)
-                    .then(userCredential => {
-                        resolve(userCredential.user);
-                    })
-                    .catch(error => {
-                        console.error('登入錯誤:', error);
-                        reject(error);
-                    });
             })
             .catch(error => {
                 console.error('查詢用戶錯誤:', error);
                 reject(error);
             });
     });
+}
+
+// 嘗試使用多個可能的電子郵件登入
+function tryLoginWithEmails(emails, index, password, resolve, reject) {
+    if (index >= emails.length) {
+        // 所有電子郵件都嘗試過了，登入失敗
+        reject(new Error('用戶名或密碼錯誤'));
+        return;
+    }
+    
+    const email = emails[index];
+    console.log(`嘗試使用電子郵件登入 (${index + 1}/${emails.length}):`, email);
+    
+    auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            console.log('使用模擬電子郵件登入成功');
+            
+            // 登入成功，檢查用戶數據是否存在於 Firestore
+            const user = userCredential.user;
+            
+            // 嘗試將用戶數據寫入 Firestore（如果不存在）
+            db.collection('users').doc(user.uid).get()
+                .then(doc => {
+                    if (!doc.exists) {
+                        console.log('用戶數據不存在於 Firestore，嘗試創建');
+                        
+                        // 從電子郵件中提取用戶名
+                        const extractedUsername = email.split('@')[0].replace(/\d+$/, '');
+                        
+                        // 創建用戶數據
+                        db.collection('users').doc(user.uid).set({
+                            username: extractedUsername,
+                            role: 'student', // 默認角色
+                            createdAt: timestamp(),
+                            email: email
+                        })
+                        .then(() => {
+                            console.log('用戶數據已成功添加到 Firestore');
+                        })
+                        .catch(error => {
+                            console.error('創建用戶數據錯誤:', error);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('檢查用戶數據錯誤:', error);
+                });
+            
+            resolve(user);
+        })
+        .catch(error => {
+            console.log(`電子郵件 ${email} 登入失敗:`, error.code);
+            
+            // 嘗試下一個電子郵件
+            tryLoginWithEmails(emails, index + 1, password, resolve, reject);
+        });
 }
 
 // 用戶登出
