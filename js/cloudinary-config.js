@@ -2,7 +2,7 @@
 const cloudinaryConfig = {
     cloudName: "dtyodfbzo", // 替換為您的 Cloud Name
     apiKey: "389857725882518",       // 替換為您的 API Key
-    uploadPreset: "class607_preset" // 將 ml_default 更改為您在 Cloudinary 控制台中創建的 unsigned upload preset
+    uploadPreset: "ml_default" // 您在 Cloudinary 控制台中創建的 unsigned upload preset
 };
 
 // 上傳文件到 Cloudinary
@@ -47,6 +47,14 @@ async function uploadToCloudinary(file) {
             // 提供更詳細的錯誤信息
             if (error.message && error.message.includes('Upload preset must be whitelisted')) {
                 console.error('上傳預設錯誤: 您需要在 Cloudinary 控制台中將上傳預設設置為允許未簽名上傳');
+                console.error('請按照以下步驟操作:');
+                console.error('1. 登入 Cloudinary 控制台 (https://cloudinary.com/console)');
+                console.error('2. 點擊 "Settings" -> "Upload" -> "Upload Presets"');
+                console.error('3. 點擊 "Add upload preset" 或編輯現有預設');
+                console.error(`4. 將預設名稱設置為 "${cloudinaryConfig.uploadPreset}" 或在代碼中更改預設名稱`);
+                console.error('5. 將 "Signing Mode" 設置為 "Unsigned"');
+                console.error('6. 保存設置並刷新網頁');
+                
                 reject({
                     message: '上傳預設錯誤: 請確保您已在 Cloudinary 控制台中正確配置上傳預設',
                     originalError: error
