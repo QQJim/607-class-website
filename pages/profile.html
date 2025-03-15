@@ -200,30 +200,47 @@
             margin-left: 15px;
         }
         
-        .action-btn {
-            background-color: #f0f0f0;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            color: #333;
-        }
-        
-        .action-btn:hover {
-            background-color: #e0e0e0;
-        }
-        
-        .homework-details-modal .modal-content {
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-        
-        .homework-feedback {
-            background-color: #f9f9f9;
+        .alert {
             padding: 15px;
+            margin-bottom: 20px;
             border-radius: 4px;
-            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .alert.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #388e3c;
+        }
+        
+        .alert-danger {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        .alert-warning {
+            background-color: #fff8e1;
+            color: #f57c00;
+            border-left: 4px solid #f57c00;
+        }
+        
+        .alert-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: inherit;
         }
         
         .homework-tabs {
@@ -275,6 +292,7 @@
         </header>
 
         <main>
+            <div id="alert-container"></div>
             <section class="page-header">
                 <h2>個人資料</h2>
                 <p>管理您的帳戶資訊</p>
@@ -393,6 +411,21 @@
                                         </div>
                                     </div>
                                     
+                                    <div class="profile-info-section">
+                                        <h3>個人資料設定</h3>
+                                        <div class="profile-form">
+                                            <div class="form-group">
+                                                <label for="student-id">學號</label>
+                                                <input type="text" id="student-id" value="${userData.studentId || ''}" placeholder="請輸入您的學號">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="real-name">姓名</label>
+                                                <input type="text" id="real-name" value="${userData.realName || ''}" placeholder="請輸入您的真實姓名">
+                                            </div>
+                                            <button id="save-profile-btn" class="btn-save">儲存資料</button>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="password-section">
                                         <h3>修改密碼</h3>
                                         <div class="profile-form">
@@ -444,6 +477,28 @@
                                     viewSubmissionDetails(submissionId, homeworkHistory.submissions);
                                 });
                             });
+                            
+                            // 添加儲存個人資料事件
+                            document.getElementById('save-profile-btn').addEventListener('click', function() {
+                                const studentId = document.getElementById('student-id').value.trim();
+                                const realName = document.getElementById('real-name').value.trim();
+                                
+                                if (studentId && realName) {
+                                    db.collection('users').doc(userId).update({
+                                        studentId,
+                                        realName
+                                    })
+                                    .then(() => {
+                                        showAlert('個人資料更新成功', 'success');
+                                    })
+                                    .catch(error => {
+                                        console.error('更新個人資料錯誤:', error);
+                                        showAlert('更新個人資料失敗', 'danger');
+                                    });
+                                } else {
+                                    showAlert('請填寫學號和姓名', 'warning');
+                                }
+                            });
                         })
                         .catch(error => {
                             console.error('獲取作業繳交歷史錯誤:', error);
@@ -454,6 +509,35 @@
                     console.error('獲取用戶資料錯誤:', error);
                     profileContainer.innerHTML = '<p class="error-message">載入用戶資料時發生錯誤</p>';
                 });
+        }
+        
+        // 顯示提示訊息
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alert-container');
+            const alertId = 'alert-' + Date.now();
+            
+            const alertHTML = `
+                <div class="alert alert-${type} show" id="${alertId}">
+                    <div class="alert-message">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'exclamation-triangle'}"></i>
+                        ${message}
+                    </div>
+                    <button class="alert-close" onclick="document.getElementById('${alertId}').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            alertContainer.insertAdjacentHTML('beforeend', alertHTML);
+            
+            // 自動關閉提示訊息
+            setTimeout(() => {
+                const alertElement = document.getElementById(alertId);
+                if (alertElement) {
+                    alertElement.classList.remove('show');
+                    setTimeout(() => alertElement.remove(), 300);
+                }
+            }, 5000);
         }
         
         // 渲染作業繳交歷史
@@ -662,6 +746,57 @@
             modal.querySelector('.modal-close').addEventListener('click', () => {
                 document.body.removeChild(modal);
             });
+        }
+        
+        // 修改密碼
+        function changePassword() {
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showAlert('請填寫所有密碼欄位', 'warning');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('新密碼與確認密碼不符', 'warning');
+                return;
+            }
+            
+            const user = auth.currentUser;
+            const credential = firebase.auth.EmailAuthProvider.credential(
+                user.email, 
+                currentPassword
+            );
+            
+            // 重新驗證用戶
+            user.reauthenticateWithCredential(credential)
+                .then(() => {
+                    // 更新密碼
+                    return user.updatePassword(newPassword);
+                })
+                .then(() => {
+                    // 清空密碼欄位
+                    document.getElementById('current-password').value = '';
+                    document.getElementById('new-password').value = '';
+                    document.getElementById('confirm-password').value = '';
+                    
+                    showAlert('密碼已成功修改', 'success');
+                })
+                .catch(error => {
+                    console.error('修改密碼錯誤:', error);
+                    
+                    let errorMessage = '修改密碼時發生錯誤';
+                    
+                    if (error.code === 'auth/wrong-password') {
+                        errorMessage = '目前密碼不正確';
+                    } else if (error.code === 'auth/weak-password') {
+                        errorMessage = '新密碼太弱，請使用至少6個字符的密碼';
+                    }
+                    
+                    showAlert(errorMessage, 'danger');
+                });
         }
     </script>
 </body>
