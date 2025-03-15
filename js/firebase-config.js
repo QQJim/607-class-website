@@ -15,60 +15,6 @@ firebase.initializeApp(firebaseConfig);
 // 取得 Firebase 服務
 const auth = firebase.auth();
 const db = firebase.firestore();
-let storage;
-
-// 確保 Firebase Storage SDK 已加載
-function initializeStorage() {
-    try {
-        if (typeof firebase.storage === 'function') {
-            storage = firebase.storage();
-            console.log("Firebase Storage 已成功初始化");
-            return true;
-        } else {
-            console.warn("Firebase Storage SDK 未加載，某些功能可能不可用");
-            // 創建一個模擬對象，以避免錯誤
-            storage = {
-                ref: function(path) {
-                    console.warn("Firebase Storage 未初始化，無法使用 ref 功能");
-                    return {
-                        put: function() { return Promise.reject(new Error("Firebase Storage 未初始化")); },
-                        getDownloadURL: function() { return Promise.reject(new Error("Firebase Storage 未初始化")); },
-                        child: function() { return this; }
-                    };
-                }
-            };
-            return false;
-        }
-    } catch (error) {
-        console.error("初始化 Firebase Storage 時發生錯誤:", error);
-        // 創建一個模擬對象，以避免錯誤
-        storage = {
-            ref: function(path) {
-                console.warn("Firebase Storage 未初始化，無法使用 ref 功能");
-                return {
-                    put: function() { return Promise.reject(new Error("Firebase Storage 未初始化")); },
-                    getDownloadURL: function() { return Promise.reject(new Error("Firebase Storage 未初始化")); },
-                    child: function() { return this; }
-                };
-            }
-        };
-        return false;
-    }
-}
-
-// 立即初始化一次
-initializeStorage();
-
-// 確保 SDK 加載後再次嘗試初始化
-document.addEventListener('DOMContentLoaded', function() {
-    // 如果第一次初始化失敗，再嘗試一次
-    setTimeout(function() {
-        if (typeof firebase.storage !== 'function') {
-            console.log("嘗試重新初始化 Firebase Storage...");
-            initializeStorage();
-        }
-    }, 1000);
-});
 
 // 設定 Firestore 時間戳記
 const timestamp = firebase.firestore.FieldValue.serverTimestamp;
