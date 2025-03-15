@@ -90,8 +90,14 @@ auth.onAuthStateChanged(user => {
 // 註冊新用戶
 function register(username, password, role) {
     return new Promise((resolve, reject) => {
+        // 確保用戶名只包含字母、數字和下劃線
+        const safeUsername = username.replace(/[^a-zA-Z0-9_]/g, '');
+        
+        // 如果用戶名為空或只包含特殊字符，使用默認前綴
+        const emailPrefix = safeUsername.length > 0 ? safeUsername : 'user';
+        
         // 使用隨機生成的電子郵件格式 (username + 隨機數字 + @example.com)
-        const randomEmail = `${username}${Math.floor(Math.random() * 10000)}@example.com`;
+        const randomEmail = `${emailPrefix}${Math.floor(Math.random() * 10000)}@example.com`;
         
         console.log('開始註冊流程，使用電子郵件:', randomEmail);
         
@@ -103,7 +109,7 @@ function register(username, password, role) {
                 
                 // 創建用戶數據對象
                 const userData = {
-                    username: username,
+                    username: username, // 保留原始用戶名（可能包含中文或特殊字符）
                     role: role,
                     createdAt: timestamp(),
                     email: randomEmail
@@ -160,7 +166,7 @@ function register(username, password, role) {
                         errorMessage = '此電子郵件已被使用，請嘗試其他用戶名。';
                         break;
                     case 'auth/invalid-email':
-                        errorMessage = '電子郵件格式無效。';
+                        errorMessage = '電子郵件格式無效。請使用只包含字母、數字和下劃線的用戶名。';
                         break;
                     case 'auth/operation-not-allowed':
                         errorMessage = '電子郵件/密碼身份驗證未啟用，請聯繫管理員。';
