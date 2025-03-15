@@ -3,7 +3,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyC13AVCmImNnVlkI0vMjMALfz6CTvU46cI",
     authDomain: "web-5fccc.firebaseapp.com",
     projectId: "web-5fccc",
-    storageBucket: "web-5fccc.firebasestorage.app",
+    storageBucket: "web-5fccc.appspot.com",
     messagingSenderId: "470768090875",
     appId: "1:470768090875:web:97bf7b02b8e15de5b9fa5e",
     measurementId: "G-6FW25GLBS3"
@@ -17,12 +17,13 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 let storage;
 
-// 延遲初始化 Firebase Storage，確保 SDK 已完全加載
-setTimeout(() => {
+// 確保 Firebase Storage SDK 已加載
+function initializeStorage() {
     try {
         if (typeof firebase.storage === 'function') {
             storage = firebase.storage();
             console.log("Firebase Storage 已成功初始化");
+            return true;
         } else {
             console.warn("Firebase Storage SDK 未加載，某些功能可能不可用");
             // 創建一個模擬對象，以避免錯誤
@@ -36,6 +37,7 @@ setTimeout(() => {
                     };
                 }
             };
+            return false;
         }
     } catch (error) {
         console.error("初始化 Firebase Storage 時發生錯誤:", error);
@@ -50,8 +52,23 @@ setTimeout(() => {
                 };
             }
         };
+        return false;
     }
-}, 500); // 延遲 500 毫秒，確保 SDK 已加載
+}
+
+// 立即初始化一次
+initializeStorage();
+
+// 確保 SDK 加載後再次嘗試初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果第一次初始化失敗，再嘗試一次
+    setTimeout(function() {
+        if (typeof firebase.storage !== 'function') {
+            console.log("嘗試重新初始化 Firebase Storage...");
+            initializeStorage();
+        }
+    }, 1000);
+});
 
 // 設定 Firestore 時間戳記
 const timestamp = firebase.firestore.FieldValue.serverTimestamp;
