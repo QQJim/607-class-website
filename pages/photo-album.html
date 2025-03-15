@@ -316,10 +316,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    
+    <!-- Cloudinary SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/cloudinary-core@2.3.0/cloudinary-core-shrinkwrap.min.js"></script>
     
     <!-- 自定義JavaScript -->
     <script src="../js/firebase-config.js"></script>
+    <script src="../js/cloudinary-config.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/main.js"></script>
     <script>
@@ -327,7 +330,7 @@
             // 初始化導航欄
             initNavigation();
             
-            // 全局變數
+            // 全域變數
             let currentPhotos = [];
             let lastVisible = null;
             const photosPerPage = 12;
@@ -470,19 +473,17 @@
                             // 上傳每張照片
                             for (let i = 0; i < files.length; i++) {
                                 const file = files[i];
-                                const storageRef = storage.ref(`album_photos/${albumId}/${file.name}`);
                                 
-                                const uploadTask = storageRef.put(file).then(snapshot => {
-                                    return snapshot.ref.getDownloadURL();
-                                })
-                                .then(downloadURL => {
+                                const uploadTask = uploadToCloudinary(file)
+                                .then(result => {
                                     // 新增照片資料到 Firestore
                                     return db.collection('photos').add({
                                         albumId: albumId,
                                         title: title,
                                         description: description,
                                         category: category,
-                                        url: downloadURL,
+                                        url: result.url,
+                                        publicId: result.publicId,
                                         fileName: file.name,
                                         authorId: auth.currentUser.uid,
                                         authorName: userData.username,
