@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人資料 - 607班級網站</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .profile-section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 40px;
+            color: #666;
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 24px;
+        }
+        
+        .profile-role {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .role-student {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .role-teacher {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .profile-form {
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 10px 0;
+            color: #4a6cf7;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .password-section {
+            margin-top: 30px;
+        }
+        
+        .btn-save {
+            background-color: #4a6cf7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .btn-save:hover {
+            background-color: #3a5bd9;
+        }
+        
+        .homework-history {
+            margin-top: 30px;
+        }
+        
+        .homework-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .homework-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .homework-title {
+            flex: 1;
+        }
+        
+        .homework-title strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .homework-meta {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .homework-score {
+            margin-left: 20px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .score-good {
+            color: #4caf50;
+        }
+        
+        .score-medium {
+            color: #ff9800;
+        }
+        
+        .score-low {
+            color: #f44336;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        
+        .status-danger {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+        
+        .status-success {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .homework-actions {
+            margin-left: 15px;
+        }
+        
+        .action-btn {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #333;
+        }
+        
+        .action-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .homework-details-modal .modal-content {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .homework-feedback {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .homework-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+        
+        .homework-tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .homework-tab.active {
+            border-bottom-color: #4a6cf7;
+            color: #4a6cf7;
+        }
+        
+        .homework-tab-content {
+            display: none;
+        }
+        
+        .homework-tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>607班級網站</h1>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="../index.html">首頁</a></li>
+                    <li><a href="announcements.html">最新公告</a></li>
+                    <li><a href="homework.html">作業區</a></li>
+                    <li><a href="photo-album.html">相簿</a></li>
+                    <li><a href="message-board.html">留言板</a></li>
+                    <li><a href="calendar.html">行事曆</a></li>
+                    <li id="user-status"><a href="login.html">登入/註冊</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </header>
+
+        <main>
+            <section class="page-header">
+                <h2>個人資料</h2>
+                <p>管理您的帳戶資訊</p>
+            </section>
+
+            <div id="profile-container">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>載入中...</p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>607班級網站</h3>
+                    <p>我們的班級網站致力於提供最佳的線上學習體驗。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>聯絡我們</h3>
+                    <p><i class="fas fa-envelope"></i> 607class@school.edu.tw</p>
+                    <p><i class="fas fa-phone"></i> (02) 2345-6789</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速連結</h3>
+                    <ul>
+                        <li><a href="../index.html">首頁</a></li>
+                        <li><a href="announcements.html">最新公告</a></li>
+                        <li><a href="homework.html">作業區</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 607班級網站 - 保留所有權利</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    
+    <!-- 自定義 JavaScript -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化導航欄
+            initNavigation();
+            
+            // 載入用戶資料
+            loadUserProfile();
+        });
+        
+        // 載入用戶資料
+        function loadUserProfile() {
+            const profileContainer = document.getElementById('profile-container');
+            
+            if (!auth.currentUser) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const userId = auth.currentUser.uid;
+            
+            // 獲取用戶資料
+            db.collection('users').doc(userId).get()
+                .then(doc => {
+                    if (!doc.exists) {
+                        profileContainer.innerHTML = '<p class="error-message">找不到用戶資料</p>';
+                        return;
+                    }
+                    
+                    const userData = doc.data();
+                    
+                    // 獲取作業繳交歷史
+                    getHomeworkHistory()
+                        .then(homeworkHistory => {
+                            // 計算統計數據
+                            const stats = calculateStats(homeworkHistory);
+                            
+                            // 渲染用戶資料
+                            profileContainer.innerHTML = `
+                                <section class="profile-section">
+                                    <div class="profile-header">
+                                        <div class="profile-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="profile-info">
+                                            <h3>${userData.username}</h3>
+                                            <span class="profile-role role-${userData.role}">${userData.role === 'teacher' ? '教師' : '學生'}</span>
+                                            <p>${userData.email}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="profile-stats">
+                                        <div class="stat-card">
+                                            <div class="stat-value">${stats.totalHomework}</div>
+                                            <div class="stat-label">總作業數</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value">${stats.completedHomework}</div>
+                                            <div class="stat-label">已完成作業</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value">${stats.averageScore !== null ? stats.averageScore : '無'}</div>
+                                            <div class="stat-label">平均分數</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value">${stats.onTimeRate}%</div>
+                                            <div class="stat-label">準時繳交率</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="password-section">
+                                        <h3>修改密碼</h3>
+                                        <div class="profile-form">
+                                            <div class="form-group">
+                                                <label for="current-password">目前密碼</label>
+                                                <input type="password" id="current-password" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="new-password">新密碼</label>
+                                                <input type="password" id="new-password" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="confirm-password">確認新密碼</label>
+                                                <input type="password" id="confirm-password" required>
+                                            </div>
+                                            <button id="change-password-btn" class="btn-save">儲存變更</button>
+                                        </div>
+                                    </div>
+                                </section>
+                                
+                                <section class="profile-section">
+                                    <h3>作業繳交歷史</h3>
+                                    <div class="homework-history">
+                                        ${renderHomeworkHistory(homeworkHistory)}
+                                    </div>
+                                </section>
+                            `;
+                            
+                            // 添加事件監聽器
+                            document.getElementById('change-password-btn').addEventListener('click', changePassword);
+                            
+                            // 添加標籤頁切換事件
+                            document.querySelectorAll('.homework-tab').forEach(tab => {
+                                tab.addEventListener('click', function() {
+                                    // 移除所有標籤頁和內容的活動狀態
+                                    document.querySelectorAll('.homework-tab').forEach(t => t.classList.remove('active'));
+                                    document.querySelectorAll('.homework-tab-content').forEach(c => c.classList.remove('active'));
+                                    
+                                    // 添加當前標籤頁和內容的活動狀態
+                                    this.classList.add('active');
+                                    document.getElementById(`tab-${this.dataset.tab}`).classList.add('active');
+                                });
+                            });
+                            
+                            // 添加查看作業詳情事件
+                            document.querySelectorAll('.view-submission-btn').forEach(button => {
+                                button.addEventListener('click', function() {
+                                    const submissionId = this.dataset.submissionId;
+                                    viewSubmissionDetails(submissionId, homeworkHistory.submissions);
+                                });
+                            });
+                        })
+                        .catch(error => {
+                            console.error('獲取作業繳交歷史錯誤:', error);
+                            profileContainer.innerHTML = '<p class="error-message">載入作業繳交歷史時發生錯誤</p>';
+                        });
+                })
+                .catch(error => {
+                    console.error('獲取用戶資料錯誤:', error);
+                    profileContainer.innerHTML = '<p class="error-message">載入用戶資料時發生錯誤</p>';
+                });
+        }
+        
+        // 渲染作業繳交歷史
+        function renderHomeworkHistory(homeworkHistory) {
+            const submissions = homeworkHistory.submissions;
+            
+            if (submissions.length === 0) {
+                return '<p class="no-data">暫無作業繳交記錄</p>';
+            }
+            
+            let html = `
+                <div class="homework-tabs">
+                    <div class="homework-tab active" data-tab="all">全部作業</div>
+                    <div class="homework-tab" data-tab="graded">已評分</div>
+                    <div class="homework-tab" data-tab="pending">未評分</div>
+                </div>
+            `;
+            
+            html += `<div class="homework-tab-content active" id="tab-all">`;
+            
+            submissions.forEach(submission => {
+                const homework = submission.homework;
+                const submittedAt = submission.submittedAt.toDate();
+                const isLate = submittedAt > homework.dueDate;
+                
+                let scoreClass = '';
+                if (submission.status === 'graded') {
+                    const scorePercent = (submission.score / homework.maxScore) * 100;
+                    if (scorePercent >= 80) {
+                        scoreClass = 'score-good';
+                    } else if (scorePercent >= 60) {
+                        scoreClass = 'score-medium';
+                    } else {
+                        scoreClass = 'score-low';
+                    }
+                }
+                
+                html += `
+                    <div class="homework-item" data-submission-id="${submission.id}" data-status="${submission.status}">
+                        <div class="homework-title">
+                            <strong>${homework.title}</strong>
+                            <div class="homework-meta">
+                                繳交時間: ${formatDate(submittedAt)} ${submittedAt.getHours().toString().padStart(2, '0')}:${submittedAt.getMinutes().toString().padStart(2, '0')}
+                                ${isLate ? '<span class="status-badge status-danger">逾期</span>' : '<span class="status-badge status-success">準時</span>'}
+                            </div>
+                        </div>
+                        <div class="homework-score ${scoreClass}">
+                            ${submission.status === 'graded' ? `${submission.score}/${homework.maxScore}` : '未評分'}
+                        </div>
+                        <div class="homework-actions">
+                            <button class="action-btn view-submission-btn" data-submission-id="${submission.id}">
+                                查看詳情
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            
+            // 已評分標籤頁
+            html += `<div class="homework-tab-content" id="tab-graded">`;
+            const gradedSubmissions = submissions.filter(s => s.status === 'graded');
+            
+            if (gradedSubmissions.length === 0) {
+                html += '<p class="no-data">暫無已評分作業</p>';
+            } else {
+                gradedSubmissions.forEach(submission => {
+                    const homework = submission.homework;
+                    const submittedAt = submission.submittedAt.toDate();
+                    const isLate = submittedAt > homework.dueDate;
+                    
+                    let scoreClass = '';
+                    const scorePercent = (submission.score / homework.maxScore) * 100;
+                    if (scorePercent >= 80) {
+                        scoreClass = 'score-good';
+                    } else if (scorePercent >= 60) {
+                        scoreClass = 'score-medium';
+                    } else {
+                        scoreClass = 'score-low';
+                    }
+                    
+                    html += `
+                        <div class="homework-item" data-submission-id="${submission.id}">
+                            <div class="homework-title">
+                                <strong>${homework.title}</strong>
+                                <div class="homework-meta">
+                                    繳交時間: ${formatDate(submittedAt)} ${submittedAt.getHours().toString().padStart(2, '0')}:${submittedAt.getMinutes().toString().padStart(2, '0')}
+                                    ${isLate ? '<span class="status-badge status-danger">逾期</span>' : '<span class="status-badge status-success">準時</span>'}
+                                </div>
+                            </div>
+                            <div class="homework-score ${scoreClass}">
+                                ${submission.score}/${homework.maxScore}
+                            </div>
+                            <div class="homework-actions">
+                                <button class="action-btn view-submission-btn" data-submission-id="${submission.id}">
+                                    查看詳情
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            html += `</div>`;
+            
+            // 未評分標籤頁
+            html += `<div class="homework-tab-content" id="tab-pending">`;
+            const pendingSubmissions = submissions.filter(s => s.status !== 'graded');
+            
+            if (pendingSubmissions.length === 0) {
+                html += '<p class="no-data">暫無未評分作業</p>';
+            } else {
+                pendingSubmissions.forEach(submission => {
+                    const homework = submission.homework;
+                    const submittedAt = submission.submittedAt.toDate();
+                    const isLate = submittedAt > homework.dueDate;
+                    
+                    html += `
+                        <div class="homework-item" data-submission-id="${submission.id}">
+                            <div class="homework-title">
+                                <strong>${homework.title}</strong>
+                                <div class="homework-meta">
+                                    繳交時間: ${formatDate(submittedAt)} ${submittedAt.getHours().toString().padStart(2, '0')}:${submittedAt.getMinutes().toString().padStart(2, '0')}
+                                    ${isLate ? '<span class="status-badge status-danger">逾期</span>' : '<span class="status-badge status-success">準時</span>'}
+                                </div>
+                            </div>
+                            <div class="homework-score">
+                                未評分
+                            </div>
+                            <div class="homework-actions">
+                                <button class="action-btn view-submission-btn" data-submission-id="${submission.id}">
+                                    查看詳情
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            html += `</div>`;
+            
+            return html;
+        }
+        
+        // 查看作業繳交詳情
+        function viewSubmissionDetails(submissionId, submissions) {
+            // 查找作業繳交記錄
+            const submission = submissions.find(s => s.id === submissionId);
+            
+            if (!submission) {
+                showAlert('找不到作業繳交記錄', 'danger');
+                return;
+            }
+            
+            const homework = submission.homework;
+            const submittedAt = submission.submittedAt.toDate();
+            const isLate = submittedAt > homework.dueDate;
+            
+            // 創建模態框
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay active homework-details-modal';
+            
+            let feedbackHtml = '';
+            if (submission.status === 'graded') {
+                const gradedAt = submission.gradedAt.toDate();
+                feedbackHtml = `
+                    <div class="homework-feedback">
+                        <h4>教師評語</h4>
+                        <p><strong>分數:</strong> ${submission.score}/${homework.maxScore}</p>
+                        <p><strong>評語:</strong> ${submission.feedback || '無'}</p>
+                        <p><strong>評分時間:</strong> ${formatDate(gradedAt)} ${gradedAt.getHours().toString().padStart(2, '0')}:${gradedAt.getMinutes().toString().padStart(2, '0')}</p>
+                    </div>
+                `;
+            }
+            
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>作業繳交詳情</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-content">
+                        <h4>${homework.title}</h4>
+                        <p><strong>作業說明:</strong> ${homework.description}</p>
+                        <p><strong>截止日期:</strong> ${formatDate(homework.dueDate)} ${homework.dueDate.getHours().toString().padStart(2, '0')}:${homework.dueDate.getMinutes().toString().padStart(2, '0')}</p>
+                        <p><strong>繳交時間:</strong> ${formatDate(submittedAt)} ${submittedAt.getHours().toString().padStart(2, '0')}:${submittedAt.getMinutes().toString().padStart(2, '0')} ${isLate ? '<span class="status-badge status-danger">逾期</span>' : '<span class="status-badge status-success">準時</span>'}</p>
+                        
+                        <h4>繳交內容</h4>
+                        <div class="submission-content">
+                            ${submission.answer}
+                        </div>
+                        
+                        ${submission.fileURL ? `
+                            <p><strong>附件:</strong> <a href="${submission.fileURL}" target="_blank">${submission.fileName}</a></p>
+                        ` : ''}
+                        
+                        ${feedbackHtml}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // 添加關閉按鈕事件
+            modal.querySelector('.modal-close').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+        }
+    </script>
+</body>
+</html>

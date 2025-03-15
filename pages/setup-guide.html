@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>設置指南 - 607班級網站</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .guide-section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .guide-section h3 {
+            margin-top: 0;
+            color: #4a6cf7;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .step {
+            margin-bottom: 20px;
+            padding-left: 20px;
+            border-left: 3px solid #4a6cf7;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-color: #4a6cf7;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            margin-right: 10px;
+        }
+        
+        .code-block {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+        
+        .note {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        
+        .warning {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        
+        img.screenshot {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>607班級網站</h1>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="../index.html">首頁</a></li>
+                    <li><a href="announcements.html">最新公告</a></li>
+                    <li><a href="homework.html">作業區</a></li>
+                    <li><a href="photo-album.html">相簿</a></li>
+                    <li><a href="message-board.html">留言板</a></li>
+                    <li><a href="calendar.html">行事曆</a></li>
+                    <li id="user-status"><a href="login.html">登入/註冊</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </header>
+
+        <main>
+            <section class="page-header">
+                <h2>設置指南</h2>
+                <p>如何正確設置 Firebase 和 Cloudinary 以避免常見問題</p>
+            </section>
+
+            <section class="guide-section">
+                <h3>Firebase 設置指南</h3>
+                
+                <div class="step">
+                    <h4><span class="step-number">1</span>更新 Firestore 安全規則</h4>
+                    <p>當您將網站部署到 GitHub Pages 時，可能會遇到 Firestore 權限問題，出現 "Missing or insufficient permissions" 錯誤。這是因為默認的安全規則不允許未經身份驗證的用戶讀取或寫入數據。</p>
+                    
+                    <ol>
+                        <li>登錄到 <a href="https://console.firebase.google.com/" target="_blank">Firebase 控制台</a></li>
+                        <li>選擇您的項目 (web-5fccc)</li>
+                        <li>在左側導航欄中，點擊 <strong>Firestore Database</strong></li>
+                        <li>點擊頂部的 <strong>規則</strong> 標籤</li>
+                        <li>將以下規則複製並粘貼到編輯器中：</li>
+                    </ol>
+                    
+                    <div class="code-block">
+rules_version = '2';<br>
+service cloud.firestore {<br>
+&nbsp;&nbsp;match /databases/{database}/documents {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// 允許已登錄用戶讀取所有文檔<br>
+&nbsp;&nbsp;&nbsp;&nbsp;match /{document=**} {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read: if request.auth != null;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// 公告集合 - 允許所有人讀取，只允許教師創建和修改<br>
+&nbsp;&nbsp;&nbsp;&nbsp;match /announcements/{announcementId} {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read: if true;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// 用戶集合 - 用戶只能讀取和修改自己的文檔<br>
+&nbsp;&nbsp;&nbsp;&nbsp;match /users/{userId} {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read: if true;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow create: if request.auth != null;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow update, delete: if request.auth != null && request.auth.uid == userId;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// 作業集合 - 允許所有人讀取，只允許教師創建和修改<br>
+&nbsp;&nbsp;&nbsp;&nbsp;match /homeworks/{homeworkId} {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read: if true;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// 作業提交集合 - 學生只能讀取和提交自己的作業，教師可以讀取所有提交並評分<br>
+&nbsp;&nbsp;&nbsp;&nbsp;match /homework_submissions/{submissionId} {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read: if request.auth != null && (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resource.data.studentId == request.auth.uid || <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow create: if request.auth != null;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow update: if request.auth != null && (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(resource.data.studentId == request.auth.uid && resource.data.status != 'graded') || <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// 留言板集合 - 允許所有人讀取，登錄用戶可以創建，只有作者和教師可以修改和刪除<br>
+&nbsp;&nbsp;&nbsp;&nbsp;match /messages/{messageId} {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read: if true;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow create: if request.auth != null;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow update, delete: if request.auth != null && (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resource.data.userId == request.auth.uid || <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// 相簿集合 - 允許所有人讀取，只允許教師上傳和管理<br>
+&nbsp;&nbsp;&nbsp;&nbsp;match /photos/{photoId} {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read: if true;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;}<br>
+}
+                    </div>
+                    
+                    <p>點擊 <strong>發布</strong> 按鈕保存規則</p>
+                    
+                    <div class="note">
+                        <p><strong>注意：</strong> 這些規則允許未登錄用戶讀取公告、作業和相簿等公共數據，但只有登錄用戶才能創建和修改數據。特別是，只有教師角色的用戶才能創建和管理作業、公告和相簿。</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <h4><span class="step-number">2</span>設置授權域名</h4>
+                    <p>為了讓您的網站能夠正常使用 Firebase Authentication，您需要將您的 GitHub Pages 網站 URL 添加到授權域名列表中：</p>
+                    
+                    <ol>
+                        <li>在 Firebase 控制台中，點擊左側導航欄中的 <strong>Authentication</strong></li>
+                        <li>點擊 <strong>Sign-in method</strong> 標籤</li>
+                        <li>滾動到底部，找到 <strong>授權域名</strong> 部分</li>
+                        <li>點擊 <strong>添加域名</strong> 按鈕</li>
+                        <li>輸入您的 GitHub Pages 網站 URL，例如 <code>https://qqjim.github.io/607-class-website</code></li>
+                        <li>點擊 <strong>添加</strong> 按鈕保存</li>
+                    </ol>
+                    
+                    <div class="warning">
+                        <p><strong>警告：</strong> 如果您沒有添加您的網站域名到授權域名列表中，用戶將無法在您的網站上登錄。</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <h4><span class="step-number">3</span>處理中文用戶名註冊問題</h4>
+                    <p>如果您的網站允許用戶使用中文用戶名註冊，可能會遇到 "auth/invalid-email" 錯誤。這是因為 Firebase 自動生成的電子郵件格式不支持中文或特殊字符。</p>
+                    
+                    <p>我們已經在註冊函數中添加了處理邏輯，確保生成的電子郵件格式正確，即使用戶名包含中文或特殊字符。如果您仍然遇到問題，請檢查 <code>auth.js</code> 文件中的註冊函數。</p>
+                </div>
+            </section>
+            
+            <section class="guide-section">
+                <h3>Cloudinary 設置指南</h3>
+                
+                <div class="step">
+                    <h4><span class="step-number">1</span>創建 Cloudinary 帳戶</h4>
+                    <p>如果您還沒有 Cloudinary 帳戶，請先創建一個：</p>
+                    
+                    <ol>
+                        <li>訪問 <a href="https://cloudinary.com/users/register/free" target="_blank">Cloudinary 註冊頁面</a></li>
+                        <li>填寫註冊表單並創建一個免費帳戶</li>
+                        <li>登錄到您的 Cloudinary 控制台</li>
+                    </ol>
+                </div>
+                
+                <div class="step">
+                    <h4><span class="step-number">2</span>設置上傳預設</h4>
+                    <p>為了允許從您的網站直接上傳到 Cloudinary，您需要設置一個未簽名的上傳預設：</p>
+                    
+                    <ol>
+                        <li>在 Cloudinary 控制台中，點擊 <strong>Settings</strong> (設置)</li>
+                        <li>點擊 <strong>Upload</strong> (上傳) 標籤</li>
+                        <li>滾動到 <strong>Upload presets</strong> (上傳預設) 部分</li>
+                        <li>點擊 <strong>Add upload preset</strong> (添加上傳預設) 按鈕</li>
+                        <li>為預設命名，例如 <code>ml_default</code> 或您選擇的任何名稱</li>
+                        <li>確保 <strong>Signing Mode</strong> (簽名模式) 設置為 <strong>Unsigned</strong> (未簽名)</li>
+                        <li>根據需要配置其他選項，如圖像轉換和文件夾設置</li>
+                        <li>點擊 <strong>Save</strong> (保存) 按鈕</li>
+                    </ol>
+                    
+                    <div class="warning">
+                        <p><strong>警告：</strong> 如果您在上傳照片時看到 "Upload preset must be whitelisted for unsigned uploads" 錯誤，這意味著您的上傳預設未設置為允許未簽名上傳。請按照上述步驟進行設置。</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <h4><span class="step-number">3</span>更新網站代碼</h4>
+                    <p>確保您的網站代碼中使用了正確的 Cloudinary 雲名稱和上傳預設名稱：</p>
+                    
+                    <ol>
+                        <li>在 Cloudinary 控制台的主頁上，找到您的 <strong>Cloud name</strong> (雲名稱)</li>
+                        <li>在您的網站代碼中，找到所有使用 Cloudinary 的地方，確保使用了正確的雲名稱和上傳預設名稱</li>
+                        <li>例如，在 <code>homework.html</code> 文件中，找到上傳文件的代碼，並確保 URL 和上傳預設名稱正確：</li>
+                    </ol>
+                    
+                    <div class="code-block">
+xhr.open('POST', 'https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload', true); // 替換為您的雲名稱<br>
+formData.append('upload_preset', 'YOUR_UPLOAD_PRESET'); // 替換為您的上傳預設名稱
+                    </div>
+                    
+                    <div class="success">
+                        <p><strong>提示：</strong> 完成這些設置後，您的網站應該能夠正常上傳照片到 Cloudinary，並且不會遇到權限問題。</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="guide-section">
+                <h3>常見問題解決</h3>
+                
+                <div class="step">
+                    <h4><span class="step-number">1</span>Firebase 權限問題</h4>
+                    <p>如果您在使用 Firebase 服務時遇到 "Missing or insufficient permissions" 錯誤：</p>
+                    
+                    <ul>
+                        <li>檢查您是否已更新 Firestore 安全規則</li>
+                        <li>確保您的代碼中使用了正確的用戶身份驗證方法</li>
+                        <li>檢查控制台錯誤信息，了解具體的權限問題</li>
+                    </ul>
+                </div>
+                
+                <div class="step">
+                    <h4><span class="step-number">2</span>Cloudinary 上傳問題</h4>
+                    <p>如果您在上傳照片到 Cloudinary 時遇到問題：</p>
+                    
+                    <ul>
+                        <li>確保您的上傳預設已設置為允許未簽名上傳</li>
+                        <li>檢查您使用的雲名稱和上傳預設名稱是否正確</li>
+                        <li>檢查控制台錯誤信息，了解具體的上傳問題</li>
+                    </ul>
+                </div>
+                
+                <div class="step">
+                    <h4><span class="step-number">3</span>用戶註冊問題</h4>
+                    <p>如果用戶在註冊時遇到問題，特別是使用中文用戶名時：</p>
+                    
+                    <ul>
+                        <li>檢查 <code>auth.js</code> 文件中的註冊函數，確保它正確處理中文用戶名</li>
+                        <li>考慮添加用戶名驗證，限制用戶名只能包含特定字符</li>
+                        <li>提供明確的錯誤消息，幫助用戶理解問題</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>607班級網站</h3>
+                    <p>為班級提供一個便捷的信息共享平台</p>
+                </div>
+                <div class="footer-section">
+                    <h3>聯絡我們</h3>
+                    <p>Email: example@school.edu.tw</p>
+                    <p>電話: (02) 1234-5678</p>
+                </div>
+                <div class="footer-section">
+                    <h3>快速連結</h3>
+                    <ul>
+                        <li><a href="../index.html">首頁</a></li>
+                        <li><a href="announcements.html">最新公告</a></li>
+                        <li><a href="homework.html">作業區</a></li>
+                        <li><a href="photo-album.html">相簿</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 607班級網站 - 保留所有權利</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- 自定義腳本 -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化導航欄
+            initNavigation();
+        });
+    </script>
+</body>
+</html>
