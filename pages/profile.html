@@ -493,7 +493,13 @@
                                     })
                                     .catch(error => {
                                         console.error('更新個人資料錯誤:', error);
-                                        showAlert('更新個人資料失敗', 'danger');
+                                        let errorMessage = '更新個人資料失敗';
+                                        
+                                        if (error.code === 'permission-denied') {
+                                            errorMessage = '權限不足，請確認您的 Firestore 安全規則設置正確';
+                                        }
+                                        
+                                        showAlert(errorMessage, 'danger');
                                     });
                                 } else {
                                     showAlert('請填寫學號和姓名', 'warning');
