@@ -101,26 +101,53 @@ function register(username, password, role) {
                 console.log('Firebase 身份驗證成功，用戶ID:', userCredential.user.uid);
                 const user = userCredential.user;
                 
-                // 將用戶數據寫入 Firestore
-                return db.collection('users').doc(user.uid).set({
+                // 創建用戶數據對象
+                const userData = {
                     username: username,
                     role: role,
                     createdAt: timestamp(),
                     email: randomEmail
-                }).then(() => {
-                    console.log('用戶資料已成功添加到 Firestore');
-                    resolve(user);
-                }).catch(firestoreError => {
-                    console.error('Firestore 寫入錯誤:', firestoreError);
-                    // 顯示詳細的 Firestore 錯誤信息
-                    let errorMessage = '保存用戶資料時發生錯誤，但您的帳戶已創建。';
-                    if (firestoreError.code === 'permission-denied') {
-                        errorMessage = 'Firestore 權限錯誤：請確保您已更新 Firestore 安全規則。';
-                    }
-                    // 雖然 Firestore 寫入失敗，但用戶已在 Authentication 中創建，所以我們仍然解析 Promise
-                    alert(errorMessage);
-                    resolve(user);
-                });
+                };
+                
+                console.log('嘗試寫入用戶數據到 Firestore:', userData);
+                
+                // 嘗試使用 set 方法寫入數據
+                db.collection('users').doc(user.uid).set(userData)
+                    .then(() => {
+                        console.log('用戶資料已成功添加到 Firestore (使用 set 方法)');
+                        resolve(user);
+                    })
+                    .catch(firestoreError => {
+                        console.error('Firestore set 方法錯誤:', firestoreError);
+                        
+                        // 如果 set 方法失敗，嘗試使用 add 方法
+                        console.log('嘗試使用 add 方法寫入用戶數據...');
+                        db.collection('users').add({
+                            ...userData,
+                            uid: user.uid  // 添加 uid 字段，因為 add 方法不會使用 uid 作為文檔 ID
+                        })
+                        .then(() => {
+                            console.log('用戶資料已成功添加到 Firestore (使用 add 方法)');
+                            resolve(user);
+                        })
+                        .catch(addError => {
+                            console.error('Firestore add 方法錯誤:', addError);
+                            
+                            // 顯示詳細的 Firestore 錯誤信息
+                            let errorMessage = '保存用戶資料時發生錯誤，但您的帳戶已創建。';
+                            if (addError.code === 'permission-denied') {
+                                errorMessage = 'Firestore 權限錯誤：請確保您已更新 Firestore 安全規則。';
+                                console.error('Firestore 權限被拒絕。請檢查安全規則是否已更新。');
+                            }
+                            
+                            // 顯示錯誤代碼和消息，以便更好地診斷問題
+                            console.error('錯誤代碼:', addError.code);
+                            console.error('錯誤消息:', addError.message);
+                            
+                            alert(errorMessage);
+                            resolve(user);
+                        });
+                    });
             })
             .catch(error => {
                 console.error('註冊錯誤:', error.code, error.message);
