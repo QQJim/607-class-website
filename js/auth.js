@@ -101,22 +101,25 @@ function register(username, password, role) {
                 console.log('Firebase 身份驗證成功，用戶ID:', userCredential.user.uid);
                 const user = userCredential.user;
                 
-                // 即使 Firestore 寫入失敗，我們也認為註冊成功了
-                // 因為用戶已經在 Firebase Authentication 中創建
-                resolve(user);
-                
-                // 嘗試將用戶數據寫入 Firestore（不影響註冊結果）
-                db.collection('users').doc(user.uid).set({
+                // 將用戶數據寫入 Firestore
+                return db.collection('users').doc(user.uid).set({
                     username: username,
                     role: role,
                     createdAt: timestamp(),
                     email: randomEmail
                 }).then(() => {
                     console.log('用戶資料已成功添加到 Firestore');
+                    resolve(user);
                 }).catch(firestoreError => {
                     console.error('Firestore 寫入錯誤:', firestoreError);
-                    // 這裡不調用 reject，因為我們已經在上面調用了 resolve
-                    // 我們只是記錄錯誤，但仍然認為註冊成功
+                    // 顯示詳細的 Firestore 錯誤信息
+                    let errorMessage = '保存用戶資料時發生錯誤，但您的帳戶已創建。';
+                    if (firestoreError.code === 'permission-denied') {
+                        errorMessage = 'Firestore 權限錯誤：請確保您已更新 Firestore 安全規則。';
+                    }
+                    // 雖然 Firestore 寫入失敗，但用戶已在 Authentication 中創建，所以我們仍然解析 Promise
+                    alert(errorMessage);
+                    resolve(user);
                 });
             })
             .catch(error => {
