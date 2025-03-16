@@ -451,8 +451,9 @@
                                     const response = JSON.parse(xhr.responseText);
                                     
                                     // 添加文件信息到提交數據
-                                    submissionData.fileURL = response.secure_url;
+                                    submissionData.fileUrl = response.secure_url;
                                     submissionData.fileName = file.name;
+                                    submissionData.fileType = file.type;
                                     
                                     // 提交作業
                                     submitHomework(submissionData, submitBtn);
