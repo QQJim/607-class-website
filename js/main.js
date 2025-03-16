@@ -197,15 +197,21 @@ function loadLatestMessages() {
 function loadStudents() {
     const studentsContainer = document.getElementById('students-list');
     
+    // 清除載入中的骨架屏
+    studentsContainer.innerHTML = '<p>正在載入學生資料...</p>';
+    
+    console.log('開始載入學生資料');
+    
     // 從 Firestore 獲取用戶資料（學生）
     db.collection('users')
         .where('role', '==', 'student')
         .get()
         .then(snapshot => {
-            // 清除載入中的骨架屏
+            // 清除載入中的提示
             studentsContainer.innerHTML = '';
             
             if (snapshot.empty) {
+                console.log('沒有找到學生資料');
                 studentsContainer.innerHTML = '<p class="no-data">目前沒有學生資料</p>';
                 return;
             }
@@ -215,11 +221,16 @@ function loadStudents() {
             snapshot.forEach(doc => {
                 const student = doc.data();
                 console.log('學生資料:', student); // 確認獲取的學生資料
+                console.log('學生真實姓名:', student.realName);
+                console.log('學生學號:', student.studentId);
                 
                 // 使用 username 作為顯示名稱的備用選項
                 const displayName = student.realName || student.username || '未設置';
                 // 使用空字符串作為 studentId 的備用選項，這樣就不會顯示 '無'
                 const studentId = student.studentId || '';
+                
+                console.log('顯示名稱:', displayName);
+                console.log('顯示學號:', studentId);
                 
                 const studentCard = document.createElement('div');
                 studentCard.className = 'student-card';
@@ -231,10 +242,12 @@ function loadStudents() {
                 `;
                 studentsContainer.appendChild(studentCard);
             });
+            
+            console.log('學生資料載入完成');
         })
         .catch(error => {
             console.error('獲取學生資料錯誤:', error);
-            studentsContainer.innerHTML = '<p class="error">載入學生資料時發生錯誤</p>';
+            studentsContainer.innerHTML = '<p class="error">載入學生資料時發生錯誤: ' + error.message + '</p>';
         });
 }
 
