@@ -197,8 +197,9 @@ function loadLatestMessages() {
 function loadStudents() {
     const studentsContainer = document.getElementById('students-list');
     
-    // 從 Firestore 獲取學生資料
-    db.collection('students')
+    // 從 Firestore 獲取用戶資料（學生）
+    db.collection('users')
+        .where('role', '==', 'student')
         .get()
         .then(snapshot => {
             // 清除載入中的骨架屏
@@ -209,16 +210,19 @@ function loadStudents() {
                 return;
             }
             
+            console.log('獲取到的學生數量:', snapshot.size); // 確認獲取的學生數量
+            
             snapshot.forEach(doc => {
                 const student = doc.data();
-                console.log(student); // 確認獲取的學生資料
+                console.log('學生資料:', student); // 確認獲取的學生資料
+                
                 const studentCard = document.createElement('div');
                 studentCard.className = 'student-card';
                 studentCard.innerHTML = `
-                    <h3>${student.realName}</h3>
-                    <p>學號: ${student.studentId}</p>
-                    <p>電子郵件: ${student.email}</p>
-                    <p>電話: ${student.phone}</p>
+                    <h3>${student.realName || student.username}</h3>
+                    <p>學號: ${student.studentId || '無'}</p>
+                    <p>電子郵件: ${student.email || '無'}</p>
+                    <p>電話: ${student.phone || '無'}</p>
                 `;
                 studentsContainer.appendChild(studentCard);
             });
