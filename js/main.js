@@ -216,13 +216,18 @@ function loadStudents() {
                 const student = doc.data();
                 console.log('學生資料:', student); // 確認獲取的學生資料
                 
+                // 使用 username 作為顯示名稱的備用選項
+                const displayName = student.realName || student.username || '未設置';
+                // 使用空字符串作為 studentId 的備用選項，這樣就不會顯示 '無'
+                const studentId = student.studentId || '';
+                
                 const studentCard = document.createElement('div');
                 studentCard.className = 'student-card';
                 studentCard.innerHTML = `
-                    <h3>${student.realName || student.username}</h3>
-                    <p>學號: ${student.studentId || '無'}</p>
-                    <p>電子郵件: ${student.email || '無'}</p>
-                    <p>電話: ${student.phone || '無'}</p>
+                    <h3>${displayName}</h3>
+                    ${studentId ? `<p>學號: ${studentId}</p>` : ''}
+                    <p>電子郵件: ${student.email || '未設置'}</p>
+                    <p>電話: ${student.phone || '未設置'}</p>
                 `;
                 studentsContainer.appendChild(studentCard);
             });
