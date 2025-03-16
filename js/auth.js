@@ -364,3 +364,15 @@ function getCurrentUserData() {
             });
     });
 }
+
+// 更新學生資料的函數
+function updateStudentData(studentId, newData) {
+    db.collection('students').doc(studentId).update(newData)
+        .then(() => {
+            console.log('學生資料更新成功');
+            loadStudents(); // 確保在更新後重新載入學生名單
+        })
+        .catch(error => {
+            console.error('更新學生資料時出錯:', error);
+        });
+}
