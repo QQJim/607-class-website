@@ -214,7 +214,7 @@ function loadStudents() {
                 const studentCard = document.createElement('div');
                 studentCard.className = 'student-card';
                 studentCard.innerHTML = `
-                    <h3>${student.name}</h3>
+                    <h3>${student.realName}</h3>
                     <p>學號: ${student.studentId}</p>
                     <p>電子郵件: ${student.email}</p>
                     <p>電話: ${student.phone}</p>
