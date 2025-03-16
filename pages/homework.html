@@ -357,32 +357,31 @@
             document.getElementById('submit-homework-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                const homeworkId = document.getElementById('submit-homework-btn').dataset.homeworkId;
-                const answer = document.getElementById('homework-answer').value.trim();
-                const fileInput = document.getElementById('homework-file');
+                const submitBtn = document.getElementById('submit-homework-btn');
+                const originalText = submitBtn.textContent;
+                
+                // 從按鈕的data屬性獲取作業ID
+                const homeworkId = submitBtn.dataset.homeworkId;
                 
                 // 調試信息
-                console.log('提交作業表單數據:', {
-                    homeworkId,
-                    answer: answer,
-                    answerLength: answer.length,
-                    fileInput: fileInput.files.length > 0 ? fileInput.files[0].name : '無文件'
-                });
+                console.log('提交作業，作業ID:', homeworkId);
+                console.log('currentHomeworkId:', currentHomeworkId);
                 
-                if (!answer && fileInput.files.length === 0) {
-                    showAlert('請輸入作業內容或上傳文件', 'danger');
+                if (!homeworkId) {
+                    alert('無法獲取作業ID，請重新整理頁面後再試');
                     return;
                 }
                 
-                const submitBtn = document.getElementById('submit-homework-btn');
                 submitBtn.disabled = true;
-                submitBtn.textContent = '提交中...';
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
                 
-                const user = auth.currentUser;
-                if (!user) {
-                    showAlert('請先登入', 'danger');
+                const answer = document.getElementById('homework-answer').value.trim();
+                const file = document.getElementById('homework-file').files[0];
+                
+                if (!answer && !file) {
+                    alert('請填寫作業內容或上傳檔案');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = '提交';
+                    submitBtn.textContent = originalText;
                     return;
                 }
                 
@@ -391,28 +390,28 @@
                     if (role !== 'student') {
                         showAlert('只有學生可以提交作業', 'danger');
                         submitBtn.disabled = false;
-                        submitBtn.textContent = '提交';
+                        submitBtn.textContent = originalText;
                         return;
                     }
                     
                     // 準備提交數據
                     const submissionData = {
                         homeworkId: homeworkId,
-                        studentId: user.uid,
-                        answer: answer || '(無文字內容)',
+                        studentId: auth.currentUser.uid,
+                        answer: answer,
                         submittedAt: timestamp(),
                         status: 'submitted'
                     };
                     
                     // 如果有文件，先上傳文件
-                    if (fileInput.files.length > 0) {
-                        const file = fileInput.files[0];
+                    if (file) {
+                        const fileInput = document.getElementById('homework-file');
                         
                         // 檢查文件大小
                         if (file.size > 10 * 1024 * 1024) { // 10MB
                             showAlert('文件大小不能超過10MB', 'danger');
                             submitBtn.disabled = false;
-                            submitBtn.textContent = '提交';
+                            submitBtn.textContent = originalText;
                             return;
                         }
                         
@@ -420,10 +419,10 @@
                         const progressContainer = document.createElement('div');
                         progressContainer.className = 'upload-progress';
                         progressContainer.innerHTML = `
-                            <div class="progress-bar-container">
-                                <div class="progress-bar" style="width: 0%"></div>
+                            <div class="progress-label">上傳中... <span>0%</span></div>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill" style="width: 0%"></div>
                             </div>
-                            <div class="progress-text">上傳中 (0%)</div>
                         `;
                         document.querySelector('.modal-content').appendChild(progressContainer);
                         
@@ -431,17 +430,18 @@
                         const formData = new FormData();
                         formData.append('file', file);
                         formData.append('upload_preset', cloudinaryConfig.uploadPreset);
-                        formData.append('cloud_name', cloudinaryConfig.cloudName);
+                        formData.append('folder', 'homework_submissions');
                         
-                        // 使用 XMLHttpRequest 以便能夠顯示進度
+                        // 顯示上傳進度
                         const xhr = new XMLHttpRequest();
-                        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/auto/upload`, true);
+                        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/upload`, true);
                         
+                        // 監聽上傳進度
                         xhr.upload.onprogress = function(e) {
                             if (e.lengthComputable) {
-                                const percentComplete = Math.round((e.loaded / e.total) * 100);
-                                progressContainer.querySelector('.progress-bar').style.width = percentComplete + '%';
-                                progressContainer.querySelector('.progress-text').textContent = `上傳中 (${percentComplete}%)`;
+                                const percent = Math.round((e.loaded / e.total) * 100);
+                                progressContainer.querySelector('.progress-bar-fill').style.width = percent + '%';
+                                progressContainer.querySelector('.progress-label span').textContent = percent + '%';
                             }
                         };
                         
@@ -460,21 +460,26 @@
                                     console.error('解析上傳響應錯誤:', error);
                                     showAlert('文件上傳失敗: 無法解析響應', 'danger');
                                     submitBtn.disabled = false;
-                                    submitBtn.textContent = '提交';
-                                    progressContainer.remove();
+                                    submitBtn.textContent = originalText;
                                 }
                             } else {
                                 console.error('上傳錯誤:', xhr.responseText);
                                 let errorMessage = '文件上傳失敗';
                                 
                                 try {
-                                    const response = JSON.parse(xhr.responseText);
-                                    if (response.error && response.error.message) {
-                                        errorMessage += ': ' + response.error.message;
+                                    const errorResponse = JSON.parse(xhr.responseText);
+                                    if (errorResponse.error && errorResponse.error.message) {
+                                        errorMessage += ': ' + errorResponse.error.message;
                                         
                                         // 特別處理 Cloudinary 未簽名上傳預設錯誤
-                                        if (response.error.message.includes('Upload preset must be whitelisted for unsigned uploads')) {
-                                            errorMessage = '上傳預設未配置為允許未簽名上傳。請參考 firebase-security-rules.md 文件中的 Cloudinary 設置部分。';
+                                        if (errorResponse.error.message.includes('Upload preset must be whitelisted for unsigned uploads')) {
+                                            errorMessage = '上傳預設未配置為允許未簽名上傳。請在 Cloudinary 控制台中將上傳預設 "' + 
+                                                cloudinaryConfig.uploadPreset + '" 設置為允許未簽名上傳。\n\n' +
+                                                '設置步驟：\n' +
+                                                '1. 登入 Cloudinary 控制台\n' +
+                                                '2. 進入 Settings > Upload 頁面\n' +
+                                                '3. 在 Upload presets 部分，找到或創建 "' + cloudinaryConfig.uploadPreset + '" 預設\n' +
+                                                '4. 確保 "Signing Mode" 設置為 "Unsigned"';
                                         }
                                     }
                                 } catch (e) {
@@ -483,7 +488,7 @@
                                 
                                 showAlert(errorMessage, 'danger');
                                 submitBtn.disabled = false;
-                                submitBtn.textContent = '提交';
+                                submitBtn.textContent = originalText;
                                 progressContainer.remove();
                             }
                         };
@@ -492,7 +497,7 @@
                             console.error('上傳請求錯誤');
                             showAlert('文件上傳失敗: 網絡錯誤', 'danger');
                             submitBtn.disabled = false;
-                            submitBtn.textContent = '提交';
+                            submitBtn.textContent = originalText;
                             progressContainer.remove();
                         };
                         
@@ -505,7 +510,7 @@
                     console.error('獲取用戶角色錯誤:', error);
                     showAlert('獲取用戶角色時發生錯誤', 'danger');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = '提交';
+                    submitBtn.textContent = originalText;
                 });
             });
             
@@ -539,28 +544,21 @@
                     })
                     .catch(error => {
                         console.error('提交作業錯誤:', error);
-                        let errorMessage = '提交作業時發生錯誤';
                         
                         // 處理常見的 Firestore 錯誤
                         if (error.code === 'permission-denied') {
-                            errorMessage = '權限不足: 您可能沒有提交作業的權限。請參考 firebase-security-rules.md 文件設置 Firestore 安全規則。';
+                            alert('權限不足: 您可能沒有提交作業的權限。請參考 firebase-security-rules.md 文件設置 Firestore 安全規則。');
                         } else if (error.code === 'unavailable') {
-                            errorMessage = '服務不可用: 請檢查您的網絡連接，或稍後再試。';
+                            alert('服務不可用: 請檢查您的網絡連接，或稍後再試。');
                         } else if (error.code === 'unauthenticated') {
-                            errorMessage = '未認證: 請重新登入後再試。';
+                            alert('未認證: 請重新登入後再試。');
                         }
                         
-                        showAlert(errorMessage, 'danger');
+                        showAlert('提交作業時發生錯誤', 'danger');
                     })
                     .finally(() => {
                         submitBtn.disabled = false;
-                        submitBtn.textContent = '提交';
-                        
-                        // 移除上傳進度條（如果存在）
-                        const progressContainer = document.querySelector('.upload-progress');
-                        if (progressContainer) {
-                            progressContainer.remove();
-                        }
+                        submitBtn.textContent = originalText;
                     });
             }
             
@@ -836,7 +834,16 @@
         // 打開繳交作業模態框
         function openSubmitModal(homeworkId) {
             currentHomeworkId = homeworkId;
+            console.log('打開提交模態框，作業ID:', homeworkId);
+            
+            // 重置表單
             document.getElementById('submit-homework-form').reset();
+            
+            // 將作業ID設置到提交按鈕的data屬性
+            const submitBtn = document.getElementById('submit-homework-btn');
+            submitBtn.dataset.homeworkId = homeworkId;
+            
+            // 顯示模態框
             document.getElementById('submit-homework-modal').classList.add('active');
         }
         
@@ -923,27 +930,28 @@
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', cloudinaryConfig.uploadPreset);
-            formData.append('cloud_name', cloudinaryConfig.cloudName);
+            formData.append('folder', 'homework_submissions');
             
             // 顯示上傳進度
             const progressContainer = document.createElement('div');
             progressContainer.className = 'progress-container';
             progressContainer.innerHTML = `
-                <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: 0%"></div>
+                <div class="progress-label">上傳中... <span>0%</span></div>
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" style="width: 0%"></div>
                 </div>
-                <div class="progress-text">0%</div>
             `;
             document.getElementById('submit-homework-form').appendChild(progressContainer);
             
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/auto/upload`, true);
+            xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/upload`, true);
             
+            // 監聽上傳進度
             xhr.upload.onprogress = function(e) {
                 if (e.lengthComputable) {
                     const percent = Math.round((e.loaded / e.total) * 100);
-                    progressContainer.querySelector('.progress-bar').style.width = percent + '%';
-                    progressContainer.querySelector('.progress-text').textContent = percent + '%';
+                    progressContainer.querySelector('.progress-bar-fill').style.width = percent + '%';
+                    progressContainer.querySelector('.progress-label span').textContent = percent + '%';
                 }
             };
             
@@ -963,16 +971,23 @@
                     });
                 } else {
                     console.error('檔案上傳失敗:', xhr.responseText);
+                    let errorMessage = '文件上傳失敗';
+                    
                     try {
                         const errorResponse = JSON.parse(xhr.responseText);
-                        if (errorResponse.error && errorResponse.error.message.includes('Upload preset must be whitelisted')) {
-                            alert('檔案上傳失敗: Cloudinary 上傳預設未正確配置。請確保您已在 Cloudinary 控制台中將 "class607_unsigned" 設置為允許未簽名上傳。詳細說明請查看設置指南。');
-                        } else {
-                            alert(`檔案上傳失敗: ${errorResponse.error.message}`);
+                        if (errorResponse.error && errorResponse.error.message) {
+                            errorMessage += ': ' + errorResponse.error.message;
+                            
+                            // 特別處理 Cloudinary 未簽名上傳預設錯誤
+                            if (errorResponse.error.message.includes('Upload preset must be whitelisted for unsigned uploads')) {
+                                errorMessage = '上傳預設未配置為允許未簽名上傳。請參考 firebase-security-rules.md 文件中的 Cloudinary 設置部分。';
+                            }
                         }
                     } catch (e) {
-                        alert(`檔案上傳失敗: ${xhr.statusText}`);
+                        // 解析錯誤訊息失敗，使用默認錯誤訊息
                     }
+                    
+                    alert(errorMessage, 'danger');
                     document.getElementById('submit-homework-btn').disabled = false;
                     document.getElementById('submit-homework-btn').textContent = '提交';
                     progressContainer.remove();
