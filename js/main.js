@@ -211,6 +211,7 @@ function loadStudents() {
             
             snapshot.forEach(doc => {
                 const student = doc.data();
+                console.log(student); // 確認獲取的學生資料
                 const studentCard = document.createElement('div');
                 studentCard.className = 'student-card';
                 studentCard.innerHTML = `
