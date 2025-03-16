@@ -685,7 +685,7 @@
                 let submissionId = null;
                 
                 if (userRole === 'student' && submissions) {
-                    const submission = submissions.find(s => s.homeworkId === homework.id);
+                    const submission = submissions[homework.id];
                     if (submission) {
                         submissionId = submission.id;
                         if (submission.status === 'graded') {
