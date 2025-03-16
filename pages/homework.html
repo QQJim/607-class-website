@@ -361,8 +361,16 @@
                 const answer = document.getElementById('homework-answer').value.trim();
                 const fileInput = document.getElementById('homework-file');
                 
-                if (!answer) {
-                    showAlert('請輸入作業內容', 'danger');
+                // 調試信息
+                console.log('提交作業表單數據:', {
+                    homeworkId,
+                    answer: answer,
+                    answerLength: answer.length,
+                    fileInput: fileInput.files.length > 0 ? fileInput.files[0].name : '無文件'
+                });
+                
+                if (!answer && fileInput.files.length === 0) {
+                    showAlert('請輸入作業內容或上傳文件', 'danger');
                     return;
                 }
                 
@@ -391,7 +399,7 @@
                     const submissionData = {
                         homeworkId: homeworkId,
                         studentId: user.uid,
-                        answer: answer,
+                        answer: answer || '(無文字內容)',
                         submittedAt: timestamp(),
                         status: 'submitted'
                     };
@@ -422,11 +430,12 @@
                         // 使用 Cloudinary 上傳
                         const formData = new FormData();
                         formData.append('file', file);
-                        formData.append('upload_preset', 'ml_default'); // 請確保這是您在 Cloudinary 設置的上傳預設名稱
+                        formData.append('upload_preset', cloudinaryConfig.uploadPreset);
+                        formData.append('cloud_name', cloudinaryConfig.cloudName);
                         
                         // 使用 XMLHttpRequest 以便能夠顯示進度
                         const xhr = new XMLHttpRequest();
-                        xhr.open('POST', 'https://api.cloudinary.com/v1_1/your-cloud-name/upload', true); // 請替換為您的 Cloudinary 雲名稱
+                        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/auto/upload`, true);
                         
                         xhr.upload.onprogress = function(e) {
                             if (e.lengthComputable) {
@@ -905,7 +914,8 @@
         function uploadFile(file, submissionId, batch) {
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('upload_preset', 'class607_unsigned'); // 請確保在 Cloudinary 控制台中設置了這個 upload preset 為允許未簽名上傳
+            formData.append('upload_preset', cloudinaryConfig.uploadPreset);
+            formData.append('cloud_name', cloudinaryConfig.cloudName);
             
             // 顯示上傳進度
             const progressContainer = document.createElement('div');
@@ -919,7 +929,7 @@
             document.getElementById('submit-homework-form').appendChild(progressContainer);
             
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', 'https://api.cloudinary.com/v1_1/your-cloud-name/upload', true);
+            xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/auto/upload`, true);
             
             xhr.upload.onprogress = function(e) {
                 if (e.lengthComputable) {
