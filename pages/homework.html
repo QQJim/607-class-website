@@ -846,6 +846,15 @@
             
             const submitBtn = document.getElementById('submit-homework-btn');
             const originalText = submitBtn.textContent;
+            
+            // 調試信息
+            console.log('currentHomeworkId:', currentHomeworkId);
+            
+            if (!currentHomeworkId) {
+                alert('無法獲取作業ID，請重新整理頁面後再試');
+                return;
+            }
+            
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
             
