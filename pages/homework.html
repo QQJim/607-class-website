@@ -816,8 +816,7 @@
             // 儲存作業按鈕
             document.getElementById('save-homework-btn')?.addEventListener('click', saveHomework);
             
-            // 提交作業按鈕
-            document.getElementById('submit-homework-btn')?.addEventListener('click', submitHomework);
+            // 不需要這個事件監聽器，因為我們已經在表單上設置了 submit 事件
             
             // 儲存評分按鈕
             document.getElementById('save-grade-btn')?.addEventListener('click', saveGrade);
@@ -850,11 +849,11 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
             
-            const answer = document.getElementById('homework-answer').value;
+            const answer = document.getElementById('homework-answer').value.trim();
             const file = document.getElementById('homework-file').files[0];
             
-            if (!answer) {
-                alert('請填寫作業內容');
+            if (!answer && !file) {
+                alert('請填寫作業內容或上傳檔案');
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
                 return;
