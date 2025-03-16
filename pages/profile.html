@@ -355,166 +355,171 @@
         function loadUserProfile() {
             const profileContainer = document.getElementById('profile-container');
             
-            if (!auth.currentUser) {
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            const userId = auth.currentUser.uid;
-            
-            // 獲取用戶資料
-            db.collection('users').doc(userId).get()
-                .then(doc => {
-                    if (!doc.exists) {
-                        profileContainer.innerHTML = '<p class="error-message">找不到用戶資料</p>';
-                        return;
-                    }
-                    
-                    const userData = doc.data();
-                    
-                    // 獲取作業繳交歷史
-                    getHomeworkHistory()
-                        .then(homeworkHistory => {
-                            // 計算統計數據
-                            const stats = calculateStats(homeworkHistory);
-                            
-                            // 渲染用戶資料
-                            profileContainer.innerHTML = `
-                                <section class="profile-section">
-                                    <div class="profile-header">
-                                        <div class="profile-avatar">
-                                            <i class="fas fa-user"></i>
-                                        </div>
-                                        <div class="profile-info">
-                                            <h3>${userData.username}</h3>
-                                            <span class="profile-role role-${userData.role}">${userData.role === 'teacher' ? '教師' : '學生'}</span>
-                                            <p>${userData.email}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="profile-stats">
-                                        <div class="stat-card">
-                                            <div class="stat-value">${stats.totalHomework}</div>
-                                            <div class="stat-label">總作業數</div>
-                                        </div>
-                                        <div class="stat-card">
-                                            <div class="stat-value">${stats.completedHomework}</div>
-                                            <div class="stat-label">已完成作業</div>
-                                        </div>
-                                        <div class="stat-card">
-                                            <div class="stat-value">${stats.averageScore !== null ? stats.averageScore : '無'}</div>
-                                            <div class="stat-label">平均分數</div>
-                                        </div>
-                                        <div class="stat-card">
-                                            <div class="stat-value">${stats.onTimeRate}%</div>
-                                            <div class="stat-label">準時繳交率</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="profile-info-section">
-                                        <h3>個人資料設定</h3>
-                                        <div class="profile-form">
-                                            <div class="form-group">
-                                                <label for="student-id">學號</label>
-                                                <input type="text" id="student-id" value="${userData.studentId || ''}" placeholder="請輸入您的學號">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="real-name">姓名</label>
-                                                <input type="text" id="real-name" value="${userData.realName || ''}" placeholder="請輸入您的真實姓名">
-                                            </div>
-                                            <button id="save-profile-btn" class="btn-save">儲存資料</button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="password-section">
-                                        <h3>修改密碼</h3>
-                                        <div class="profile-form">
-                                            <div class="form-group">
-                                                <label for="current-password">目前密碼</label>
-                                                <input type="password" id="current-password" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="new-password">新密碼</label>
-                                                <input type="password" id="new-password" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="confirm-password">確認新密碼</label>
-                                                <input type="password" id="confirm-password" required>
-                                            </div>
-                                            <button id="change-password-btn" class="btn-save">儲存變更</button>
-                                        </div>
-                                    </div>
-                                </section>
+            // 使用 onAuthStateChanged 監聽認證狀態變化
+            auth.onAuthStateChanged(user => {
+                if (!user) {
+                    console.log('用戶未登入，重定向到登入頁面');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                const userId = user.uid;
+                console.log('已登入用戶:', userId);
+                
+                // 獲取用戶資料
+                db.collection('users').doc(userId).get()
+                    .then(doc => {
+                        if (!doc.exists) {
+                            profileContainer.innerHTML = '<p class="error-message">找不到用戶資料</p>';
+                            return;
+                        }
+                        
+                        const userData = doc.data();
+                        
+                        // 獲取作業繳交歷史
+                        getHomeworkHistory()
+                            .then(homeworkHistory => {
+                                // 計算統計數據
+                                const stats = calculateStats(homeworkHistory);
                                 
-                                <section class="profile-section">
-                                    <h3>作業繳交歷史</h3>
-                                    <div class="homework-history">
-                                        ${renderHomeworkHistory(homeworkHistory)}
-                                    </div>
-                                </section>
-                            `;
-                            
-                            // 添加事件監聽器
-                            document.getElementById('change-password-btn').addEventListener('click', changePassword);
-                            
-                            // 添加標籤頁切換事件
-                            document.querySelectorAll('.homework-tab').forEach(tab => {
-                                tab.addEventListener('click', function() {
-                                    // 移除所有標籤頁和內容的活動狀態
-                                    document.querySelectorAll('.homework-tab').forEach(t => t.classList.remove('active'));
-                                    document.querySelectorAll('.homework-tab-content').forEach(c => c.classList.remove('active'));
+                                // 渲染用戶資料
+                                profileContainer.innerHTML = `
+                                    <section class="profile-section">
+                                        <div class="profile-header">
+                                            <div class="profile-avatar">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div class="profile-info">
+                                                <h3>${userData.username}</h3>
+                                                <span class="profile-role role-${userData.role}">${userData.role === 'teacher' ? '教師' : '學生'}</span>
+                                                <p>${userData.email}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="profile-stats">
+                                            <div class="stat-card">
+                                                <div class="stat-value">${stats.totalHomework}</div>
+                                                <div class="stat-label">總作業數</div>
+                                            </div>
+                                            <div class="stat-card">
+                                                <div class="stat-value">${stats.completedHomework}</div>
+                                                <div class="stat-label">已完成作業</div>
+                                            </div>
+                                            <div class="stat-card">
+                                                <div class="stat-value">${stats.averageScore !== null ? stats.averageScore : '無'}</div>
+                                                <div class="stat-label">平均分數</div>
+                                            </div>
+                                            <div class="stat-card">
+                                                <div class="stat-value">${stats.onTimeRate}%</div>
+                                                <div class="stat-label">準時繳交率</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="profile-info-section">
+                                            <h3>個人資料設定</h3>
+                                            <div class="profile-form">
+                                                <div class="form-group">
+                                                    <label for="student-id">學號</label>
+                                                    <input type="text" id="student-id" value="${userData.studentId || ''}" placeholder="請輸入您的學號">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="real-name">姓名</label>
+                                                    <input type="text" id="real-name" value="${userData.realName || ''}" placeholder="請輸入您的真實姓名">
+                                                </div>
+                                                <button id="save-profile-btn" class="btn-save">儲存資料</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="password-section">
+                                            <h3>修改密碼</h3>
+                                            <div class="profile-form">
+                                                <div class="form-group">
+                                                    <label for="current-password">目前密碼</label>
+                                                    <input type="password" id="current-password" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="new-password">新密碼</label>
+                                                    <input type="password" id="new-password" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="confirm-password">確認新密碼</label>
+                                                    <input type="password" id="confirm-password" required>
+                                                </div>
+                                                <button id="change-password-btn" class="btn-save">儲存變更</button>
+                                            </div>
+                                        </div>
+                                    </section>
                                     
-                                    // 添加當前標籤頁和內容的活動狀態
-                                    this.classList.add('active');
-                                    document.getElementById(`tab-${this.dataset.tab}`).classList.add('active');
-                                });
-                            });
-                            
-                            // 添加查看作業詳情事件
-                            document.querySelectorAll('.view-submission-btn').forEach(button => {
-                                button.addEventListener('click', function() {
-                                    const submissionId = this.dataset.submissionId;
-                                    viewSubmissionDetails(submissionId, homeworkHistory.submissions);
-                                });
-                            });
-                            
-                            // 添加儲存個人資料事件
-                            document.getElementById('save-profile-btn').addEventListener('click', function() {
-                                const studentId = document.getElementById('student-id').value.trim();
-                                const realName = document.getElementById('real-name').value.trim();
+                                    <section class="profile-section">
+                                        <h3>作業繳交歷史</h3>
+                                        <div class="homework-history">
+                                            ${renderHomeworkHistory(homeworkHistory)}
+                                        </div>
+                                    </section>
+                                `;
                                 
-                                if (studentId && realName) {
-                                    db.collection('users').doc(userId).update({
-                                        studentId,
-                                        realName
-                                    })
-                                    .then(() => {
-                                        showAlert('個人資料更新成功', 'success');
-                                    })
-                                    .catch(error => {
-                                        console.error('更新個人資料錯誤:', error);
-                                        let errorMessage = '更新個人資料失敗';
+                                // 添加事件監聽器
+                                document.getElementById('change-password-btn').addEventListener('click', changePassword);
+                                
+                                // 添加標籤頁切換事件
+                                document.querySelectorAll('.homework-tab').forEach(tab => {
+                                    tab.addEventListener('click', function() {
+                                        // 移除所有標籤頁和內容的活動狀態
+                                        document.querySelectorAll('.homework-tab').forEach(t => t.classList.remove('active'));
+                                        document.querySelectorAll('.homework-tab-content').forEach(c => c.classList.remove('active'));
                                         
-                                        if (error.code === 'permission-denied') {
-                                            errorMessage = '權限不足，請確認您的 Firestore 安全規則設置正確';
-                                        }
-                                        
-                                        showAlert(errorMessage, 'danger');
+                                        // 添加當前標籤頁和內容的活動狀態
+                                        this.classList.add('active');
+                                        document.getElementById(`tab-${this.dataset.tab}`).classList.add('active');
                                     });
-                                } else {
-                                    showAlert('請填寫學號和姓名', 'warning');
-                                }
+                                });
+                                
+                                // 添加查看作業詳情事件
+                                document.querySelectorAll('.view-submission-btn').forEach(button => {
+                                    button.addEventListener('click', function() {
+                                        const submissionId = this.dataset.submissionId;
+                                        viewSubmissionDetails(submissionId, homeworkHistory.submissions);
+                                    });
+                                });
+                                
+                                // 添加儲存個人資料事件
+                                document.getElementById('save-profile-btn').addEventListener('click', function() {
+                                    const studentId = document.getElementById('student-id').value.trim();
+                                    const realName = document.getElementById('real-name').value.trim();
+                                    
+                                    if (studentId && realName) {
+                                        db.collection('users').doc(userId).update({
+                                            studentId,
+                                            realName
+                                        })
+                                        .then(() => {
+                                            showAlert('個人資料更新成功', 'success');
+                                        })
+                                        .catch(error => {
+                                            console.error('更新個人資料錯誤:', error);
+                                            let errorMessage = '更新個人資料失敗';
+                                            
+                                            if (error.code === 'permission-denied') {
+                                                errorMessage = '權限不足，請確認您的 Firestore 安全規則設置正確';
+                                            }
+                                            
+                                            showAlert(errorMessage, 'danger');
+                                        });
+                                    } else {
+                                        showAlert('請填寫學號和姓名', 'warning');
+                                    }
+                                });
+                            })
+                            .catch(error => {
+                                console.error('獲取作業繳交歷史錯誤:', error);
+                                profileContainer.innerHTML = '<p class="error-message">載入作業繳交歷史時發生錯誤</p>';
                             });
-                        })
-                        .catch(error => {
-                            console.error('獲取作業繳交歷史錯誤:', error);
-                            profileContainer.innerHTML = '<p class="error-message">載入作業繳交歷史時發生錯誤</p>';
-                        });
-                })
-                .catch(error => {
-                    console.error('獲取用戶資料錯誤:', error);
-                    profileContainer.innerHTML = '<p class="error-message">載入用戶資料時發生錯誤</p>';
-                });
+                    })
+                    .catch(error => {
+                        console.error('獲取用戶資料錯誤:', error);
+                        profileContainer.innerHTML = '<p class="error-message">載入用戶資料時發生錯誤</p>';
+                    });
+            });
         }
         
         // 顯示提示訊息
