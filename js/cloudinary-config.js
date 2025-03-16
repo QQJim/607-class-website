@@ -2,8 +2,21 @@
 const cloudinaryConfig = {
     cloudName: "dtyodfbzo", // 替換為您的 Cloud Name
     apiKey: "389857725882518", // 替換為您的 API Key
-    uploadPreset: "ml_default" // 您在 Cloudinary 控制台中創建的 upload preset
+    uploadPreset: "class607_unsigned" // 您在 Cloudinary 控制台中創建的 upload preset，必須設置為允許未簽名上傳
 };
+
+/*
+重要說明：如何配置 Cloudinary 未簽名上傳預設
+1. 登入 Cloudinary 控制台 (https://console.cloudinary.com/)
+2. 進入 Settings > Upload 頁面
+3. 在 Upload presets 部分，點擊 "Add upload preset"
+4. 創建一個名為 "class607_unsigned" 的預設
+5. 確保 "Signing Mode" 設置為 "Unsigned"
+6. 保存設置
+
+如果您遇到 "Upload preset must be whitelisted for unsigned uploads" 錯誤，
+請確保您已按照上述步驟正確配置 Cloudinary 上傳預設。
+*/
 
 // 上傳文件到 Cloudinary
 async function uploadToCloudinary(file) {
@@ -12,10 +25,10 @@ async function uploadToCloudinary(file) {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', cloudinaryConfig.uploadPreset);
-        formData.append('cloud_name', cloudinaryConfig.cloudName);
+        formData.append('folder', 'class607'); // 將文件上傳到指定文件夾
         
         // 使用未簽名上傳
-        fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/auto/upload`, {
+        fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/upload`, {
             method: 'POST',
             body: formData
         })

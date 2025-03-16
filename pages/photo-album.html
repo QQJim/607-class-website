@@ -482,7 +482,7 @@
                             // 創建 Cloudinary Upload Widget
                             const myWidget = cloudinary.createUploadWidget({
                                 cloudName: cloudinaryConfig.cloudName,
-                                uploadPreset: 'ml_default',
+                                uploadPreset: cloudinaryConfig.uploadPreset,
                                 sources: ['local', 'url', 'camera'],
                                 multiple: true,
                                 maxFiles: files.length,
