@@ -532,6 +532,111 @@
             });
         }
         
+        // 獲取作業繳交歷史
+        function getHomeworkHistory() {
+            return new Promise((resolve, reject) => {
+                if (!auth.currentUser) {
+                    reject(new Error('用戶未登入'));
+                    return;
+                }
+                
+                const userId = auth.currentUser.uid;
+                
+                // 模擬數據 - 實際應用中應從 Firestore 獲取
+                const homeworkHistory = {
+                    submissions: [],
+                    stats: {
+                        totalHomework: 0,
+                        completedHomework: 0,
+                        averageScore: null,
+                        onTimeRate: 0
+                    }
+                };
+                
+                // 從 Firestore 獲取作業列表
+                db.collection('homeworks').get()
+                    .then(homeworkSnapshot => {
+                        const totalHomework = homeworkSnapshot.size;
+                        homeworkHistory.stats.totalHomework = totalHomework;
+                        
+                        if (totalHomework === 0) {
+                            resolve(homeworkHistory);
+                            return;
+                        }
+                        
+                        // 獲取用戶的作業提交記錄
+                        db.collection('homework_submissions')
+                            .where('userId', '==', userId)
+                            .get()
+                            .then(submissionsSnapshot => {
+                                if (submissionsSnapshot.empty) {
+                                    resolve(homeworkHistory);
+                                    return;
+                                }
+                                
+                                // 處理提交記錄
+                                submissionsSnapshot.forEach(doc => {
+                                    const submission = doc.data();
+                                    submission.id = doc.id;
+                                    homeworkHistory.submissions.push(submission);
+                                });
+                                
+                                resolve(homeworkHistory);
+                            })
+                            .catch(error => {
+                                console.error('獲取作業提交記錄錯誤:', error);
+                                reject(error);
+                            });
+                    })
+                    .catch(error => {
+                        console.error('獲取作業列表錯誤:', error);
+                        reject(error);
+                    });
+            });
+        }
+        
+        // 計算統計數據
+        function calculateStats(homeworkHistory) {
+            const stats = {
+                totalHomework: homeworkHistory.stats.totalHomework || 0,
+                completedHomework: homeworkHistory.submissions.length || 0,
+                averageScore: null,
+                onTimeRate: 0
+            };
+            
+            // 計算平均分數
+            if (stats.completedHomework > 0) {
+                let totalScore = 0;
+                let scoredSubmissions = 0;
+                
+                homeworkHistory.submissions.forEach(submission => {
+                    if (submission.score !== undefined && submission.score !== null) {
+                        totalScore += submission.score;
+                        scoredSubmissions++;
+                    }
+                });
+                
+                if (scoredSubmissions > 0) {
+                    stats.averageScore = Math.round(totalScore / scoredSubmissions);
+                }
+            }
+            
+            // 計算準時繳交率
+            if (stats.completedHomework > 0 && stats.totalHomework > 0) {
+                let onTimeSubmissions = 0;
+                
+                homeworkHistory.submissions.forEach(submission => {
+                    if (submission.isOnTime) {
+                        onTimeSubmissions++;
+                    }
+                });
+                
+                stats.onTimeRate = Math.round((onTimeSubmissions / stats.completedHomework) * 100);
+            }
+            
+            return stats;
+        }
+        
         // 顯示提示訊息
         function showAlert(message, type) {
             const alertContainer = document.getElementById('alert-container');
