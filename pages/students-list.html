@@ -533,9 +533,9 @@
                             
                             // 如果有搜尋查詢，過濾學生資料
                             if (searchQuery) {
-                                const studentName = student.name ? student.name.toLowerCase() : '';
+                                const studentName = student.realName ? student.realName.toLowerCase() : '';
                                 const studentUsername = student.username ? student.username.toLowerCase() : '';
-                                const studentNumber = student.studentNumber ? student.studentNumber.toLowerCase() : '';
+                                const studentNumber = student.studentId ? student.studentId.toLowerCase() : '';
                                 
                                 if (studentName.includes(searchQuery) || 
                                     studentUsername.includes(searchQuery) || 
@@ -591,8 +591,8 @@
                                             const row = document.createElement('tr');
                                             
                                             row.innerHTML = `
-                                                <td>${student.studentNumber || '未設置'}</td>
-                                                <td>${student.name || '未設置'}</td>
+                                                <td>${student.studentId || '未設置'}</td>
+                                                <td>${student.realName || '未設置'}</td>
                                                 <td>${student.username}</td>
                                                 <td>
                                                     <span class="student-status ${student.active !== false ? 'active' : 'inactive'}">
@@ -645,8 +645,8 @@
                 const studentHomeworkItems = document.getElementById('student-homework-items');
                 
                 // 設置學生基本資料
-                studentName.textContent = student.name || '未設置姓名';
-                studentId.textContent = student.studentNumber || '未設置學號';
+                studentName.textContent = student.realName || '未設置姓名';
+                studentId.textContent = student.studentId || '未設置學號';
                 studentUsername.textContent = student.username;
                 studentRegisterDate.textContent = student.createdAt ? formatDate(student.createdAt.toDate()) : '未知';
                 studentLastLogin.textContent = student.lastLogin ? formatDate(student.lastLogin.toDate()) : '未知';
