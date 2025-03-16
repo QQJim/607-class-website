@@ -16,6 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('messages-list')) {
         loadLatestMessages();
     }
+    
+    // 載入學生資料
+    if (document.getElementById('students-list')) {
+        loadStudents();
+    }
 });
 
 // 初始化導航欄
@@ -185,6 +190,40 @@ function loadLatestMessages() {
         .catch(error => {
             console.error('獲取留言錯誤:', error);
             messagesContainer.innerHTML = '<p class="error">載入留言時發生錯誤</p>';
+        });
+}
+
+// 載入學生資料
+function loadStudents() {
+    const studentsContainer = document.getElementById('students-list');
+    
+    // 從 Firestore 獲取學生資料
+    db.collection('students')
+        .get()
+        .then(snapshot => {
+            // 清除載入中的骨架屏
+            studentsContainer.innerHTML = '';
+            
+            if (snapshot.empty) {
+                studentsContainer.innerHTML = '<p class="no-data">目前沒有學生資料</p>';
+                return;
+            }
+            
+            snapshot.forEach(doc => {
+                const student = doc.data();
+                const studentCard = document.createElement('div');
+                studentCard.className = 'student-card';
+                studentCard.innerHTML = `
+                    <h3>${student.name}</h3>
+                    <p>電子郵件: ${student.email}</p>
+                    <p>電話: ${student.phone}</p>
+                `;
+                studentsContainer.appendChild(studentCard);
+            });
+        })
+        .catch(error => {
+            console.error('獲取學生資料錯誤:', error);
+            studentsContainer.innerHTML = '<p class="error">載入學生資料時發生錯誤</p>';
         });
 }
 
